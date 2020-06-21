@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+
 /**
  * mybatis 条件
  * @author zhangzlyuyx
@@ -31,13 +34,20 @@ public class Condition implements ICondition, Serializable, Cloneable {
 	 */
 	public void setField(String field) {
 		this.field = field;
+		this.columnName = field;
 	}
 	
+	/**
+	 * 列名称
+	 */
+	private String columnName;
+	
 	public String getColumnName() {
-		return this.field;
+		return this.columnName;
 	}
 	
 	public void setColumnName(String columnName) {
+		this.columnName = columnName;
 		this.field = columnName;
 	}
 	
@@ -176,6 +186,45 @@ public class Condition implements ICondition, Serializable, Cloneable {
 			for(Condition condition : conditions) {
 				conditionList.add(condition);
 			}
+		}
+		return conditionList;
+	}
+	
+	/**
+	 * 解析 json
+	 * @param json
+	 * @return
+	 */
+	public static List<Condition> parseArray(String json){
+		if(json == null || json.length() == 0) {
+			return new ArrayList<>();
+		}
+		JSONArray array = JSONObject.parseArray(json);
+		if(array == null || array.size() == 0) {
+			return new ArrayList<>();
+		}
+		List<Condition> conditionList = new ArrayList<>();
+		for(int i = 0; i < array.size(); i++) {
+			JSONObject item = array.getJSONObject(i);
+			//json转对象
+			Condition condition =  item.toJavaObject(Condition.class);
+			//重新取值，防止部分字段转换失败问题
+			if(item.containsKey("columnName")) {
+				condition.setColumnName(item.getString("columnName"));
+			}
+			if(item.containsKey("field")) {
+				condition.setField(item.getString("field"));
+			}
+			if(item.containsKey("operator")) {
+				condition.setOperator(item.getString("operator"));
+			}
+			if(item.containsKey("value")) {
+				condition.setValue(item.get("value"));
+			}
+			if(item.containsKey("secondValue")) {
+				condition.setSecondValue(item.get("secondValue"));
+			}
+			conditionList.add(condition);
 		}
 		return conditionList;
 	}

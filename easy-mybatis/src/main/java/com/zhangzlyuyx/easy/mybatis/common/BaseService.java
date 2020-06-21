@@ -175,6 +175,15 @@ public interface BaseService<T> {
 	List<T> selectByIds(String ids);
 	
 	/**
+	 * 查询首个数据
+	 * @param queryMap 查询条件
+	 * @param orderByClause 排序
+	 * @param properties 筛选的属性
+	 * @return
+	 */
+	T selectFirst(Map<String, Object> queryMap, String orderByClause, String... properties);
+	
+	/**
 	 * 查询全部结果
 	 * @return
 	 */
@@ -196,10 +205,10 @@ public interface BaseService<T> {
 	
 	/**
 	 * 根据条件查询总数
-	 * @param queyMap map查询条件
+	 * @param queryMap map查询条件
 	 * @return
 	 */
-	int selectCountByMap(Map<String, Object> queyMap);
+	int selectCountByMap(Map<String, Object> queryMap);
 	
 	/**
 	 * 查询结果集合

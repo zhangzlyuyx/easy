@@ -133,6 +133,12 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 	}
 	
 	@Override
+	public T selectFirst(Map<String, Object> queryMap, String orderByClause, String... properties) {
+		List<T> list = MapperUtils.selectByMap(this.getMapper(), this.getEntityClass(), queryMap, 1, 1, orderByClause, properties);
+		return list.size() > 0 ? list.get(0) : null;
+	}
+	
+	@Override
 	public List<T> selectAll() {
 		return MapperUtils.selectAll(this.getMapper());
 	}
@@ -148,8 +154,8 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 	}
 	
 	@Override
-	public int selectCountByMap(Map<String, Object> queyMap) {
-		return MapperUtils.selectCountByMap(this.getMapper(), this.getEntityClass(), queyMap);
+	public int selectCountByMap(Map<String, Object> queryMap) {
+		return MapperUtils.selectCountByMap(this.getMapper(), this.getEntityClass(), queryMap);
 	}
 	
 	@Override
