@@ -10,10 +10,24 @@ import com.zhangzlyuyx.easy.mybatis.IPageResult;
 import tk.mybatis.mapper.common.Mapper;
 import tk.mybatis.mapper.entity.Example;
 
+/**
+ * base service 接口
+ * @author zhangzlyuyx
+ *
+ * @param <T>
+ */
 public interface BaseService<T> {
 	
+	/**
+	 * 获取 mapper
+	 * @return
+	 */
 	BaseMapper<T> getMapper();
 	
+	/**
+	 * 获取实体 class
+	 * @return
+	 */
 	Class<T> getEntityClass();
 
 	/**
@@ -61,7 +75,6 @@ public interface BaseService<T> {
 	
 	/**
 	 * 根据map条件删除数据
-	 * @param enityClass 实体类型
 	 * @param queryMap map查询条件
 	 * @return
 	 */
@@ -69,7 +82,6 @@ public interface BaseService<T> {
 	
 	/**
 	 * 根据condition条件删除数据
-	 * @param enityClass 实体类型
 	 * @param conditions condition查询条件
 	 * @return
 	 */
@@ -184,14 +196,13 @@ public interface BaseService<T> {
 	
 	/**
 	 * 根据条件查询总数
-	 * @param queyMap
+	 * @param queyMap map查询条件
 	 * @return
 	 */
 	int selectCountByMap(Map<String, Object> queyMap);
 	
 	/**
 	 * 查询结果集合
-	 * @param enityClass 实体类型
 	 * @param queryMap 查询条件
 	 * @return
 	 */
@@ -210,7 +221,6 @@ public interface BaseService<T> {
 	
 	/**
 	 * 根据条件查询总数
-	 * @param enityClass
 	 * @param conditions
 	 * @return
 	 */
@@ -236,8 +246,7 @@ public interface BaseService<T> {
 	
 	/**
 	 * 查询分页结果
-	 * @param enityClass
-	 * @param pageQuery
+	 * @param pageQuery 分页查询条件
 	 * @return
 	 */
 	IPageResult<T> selectByPage(IPageQuery pageQuery);

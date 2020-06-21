@@ -6,7 +6,9 @@ import java.util.Map.Entry;
 
 import org.apache.ibatis.session.RowBounds;
 
+import com.zhangzlyuyx.easy.core.util.StringUtils;
 import com.zhangzlyuyx.easy.mybatis.Condition;
+import com.zhangzlyuyx.easy.mybatis.ICondition;
 import com.zhangzlyuyx.easy.mybatis.IPageQuery;
 import com.zhangzlyuyx.easy.mybatis.IPageResult;
 import com.zhangzlyuyx.easy.mybatis.PageResult;
@@ -338,17 +340,26 @@ public class MapperUtils {
 	public static <T> IPageResult<T> selectByPage(Mapper<T> mapper, Class<T> enityClass, IPageQuery pageQuery) {
 		//分页结果
 		PageResult<T> pageResult = new PageResult<T>();
-		pageResult.setPageNo(pageQuery.getPageNo());
-		pageResult.setPageSize(pageQuery.getPageSize());
-		
-		//获取总记录数
-		int count = selectCountByCondition(mapper, enityClass, pageQuery.getConditions());
-		pageResult.setTotal(Long.parseLong(String.valueOf(count)));
-		
-		//分页查询
-		List<T> list = selectByCondition(mapper, enityClass, pageQuery.getConditions(), pageQuery.getPageNo(), pageQuery.getPageSize(), pageQuery.getOrderByClause(), pageQuery.getProperties());
+		//查询条件
+		Example example = createExample(enityClass, pageQuery);
+		List<T> list = null;
+		//判断是否需要分页
+		if (pageQuery.getPageNo() != null && pageQuery.getPageSize() != null) {
+			//查询数据列表
+			list = selectByExample(mapper, example, pageQuery.getPageNo(), pageQuery.getPageSize());
+			//获取总记录数
+			int count = selectCountByCondition(mapper, enityClass, pageQuery.getConditions());
+			pageResult.setTotal(Long.parseLong(String.valueOf(count)));
+			pageResult.setPageNo(pageQuery.getPageNo());
+			pageResult.setPageSize(pageQuery.getPageSize());
+		} else {
+			//查询数据列表
+			list = selectByExample(mapper, example);
+			pageResult.setTotal(Long.parseLong(String.valueOf(list.size())));
+			pageResult.setPageNo(1);
+			pageResult.setPageSize(list.size());
+		}
 		pageResult.setRows(list);
-		
 		return pageResult;
 	}
 	
@@ -388,6 +399,10 @@ public class MapperUtils {
 		} else {
 			return mapper.selectByExample(example);
 		}
+	}
+	
+	public static <T> boolean existsWithPrimaryKey(Mapper<T> mapper, Object key) {
+		return mapper.existsWithPrimaryKey(key);
 	}
 	
 	/******************** end select ********************/
@@ -435,9 +450,84 @@ public class MapperUtils {
 			Criteria criteriaNew = example.createCriteria();
 			for(int i = 0; i < conditions.size(); i++) {
 				Condition condition = conditions.get(i);
-				condition.criteriaOperator(example, criteriaNew);
+				criteriaOperator(condition, example, criteriaNew); 
 			}
 		}
 		return example;
+	}
+	
+	public static Example createExample(Class<?> enityClass, IPageQuery pageQuery) {
+		Example example = createExample(enityClass);
+		if(pageQuery.getConditions().size() > 0) {
+			Criteria criteriaNew = example.createCriteria();
+			for(int i = 0; i < pageQuery.getConditions().size(); i++) {
+				Condition condition = pageQuery.getConditions().get(i);
+				criteriaOperator(condition, example, criteriaNew); 
+			}
+		}
+		if(pageQuery.getOrderByClause() != null && pageQuery.getOrderByClause().length() > 0) {
+			example.setOrderByClause(pageQuery.getOrderByClause());
+		}
+		if(pageQuery.getProperties() != null && pageQuery.getProperties().length > 0) {
+			example.selectProperties(pageQuery.getProperties());
+		}
+		return example;
+	}
+	
+	/**
+	 * 条件操作处理
+	 * @param condition
+	 * @param example
+	 * @param criteriaNew
+	 * @return
+	 */
+	public static boolean criteriaOperator(ICondition condition, Example example, Criteria criteriaNew) {
+		if(StringUtils.isEmpty(condition.getField()) && StringUtils.isEmpty(condition.getOperator()) && condition.getValue() == null) {
+			return false;
+		}
+		//获取操作类型
+		String operator = !StringUtils.isEmpty(condition.getOperator()) ? condition.getOperator() : "";
+		if(operator.equalsIgnoreCase("=")){
+			criteriaNew.andEqualTo(condition.getField(), condition.getValue());
+		}else if(operator.equalsIgnoreCase("!=") || operator.equalsIgnoreCase("<>")){
+			criteriaNew.andNotEqualTo(condition.getField(), condition.getValue());
+		}else if(operator.equalsIgnoreCase("like")){
+			criteriaNew.andLike(condition.getField(), condition.getValue().toString());
+		}else if(operator.equalsIgnoreCase("not like")){
+			criteriaNew.andNotLike(condition.getField(), condition.getValue().toString());
+		}else if(operator.equalsIgnoreCase(">")){
+			criteriaNew.andGreaterThan(condition.getField(), condition.getValue());
+		}else if(operator.equalsIgnoreCase(">=")){
+			criteriaNew.andGreaterThanOrEqualTo(condition.getField(), condition.getValue());
+		}else if(operator.equalsIgnoreCase("<")){
+			criteriaNew.andLessThan(condition.getField(), condition.getValue());
+		}else if(operator.equalsIgnoreCase("<=")){
+			criteriaNew.andLessThanOrEqualTo(condition.getField(), condition.getValue());
+		}else if(operator.equalsIgnoreCase("in")){
+			criteriaNew.andIn(condition.getField(), (List<?>)condition.getValue());
+		}else if(operator.equalsIgnoreCase("not in")){
+			criteriaNew.andNotIn(condition.getField(), (List<?>)condition.getValue());
+		}else if(operator.equalsIgnoreCase("isnull") || operator.equalsIgnoreCase("is null")){
+			criteriaNew.andIsNull(condition.getField());
+		}else if(operator.equalsIgnoreCase("is not null")){
+			criteriaNew.andIsNotNull(condition.getField());
+		}else if(operator.equalsIgnoreCase("between")){
+			criteriaNew.andBetween(condition.getField(), condition.getValue(), condition.getSecondValue());
+		}  else{
+			// 其他不支持操作处理
+			if(condition.getValue() != null){
+				criteriaNew.andCondition(condition.getField(), condition.getValue());
+			}else{
+				criteriaNew.andCondition(condition.getField());
+			}
+		}
+		//递归嵌套条件处理
+		if(condition.getConditions() != null && condition.getConditions().size() > 0) {
+			Criteria nextCriteria = example.createCriteria();
+			for(Condition nextCondition : condition.getConditions()) {
+				criteriaOperator(nextCondition, example, nextCriteria);
+			}
+		}
+		return true;
 	}
 }

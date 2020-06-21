@@ -5,14 +5,11 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ibatis.session.RowBounds;
-
 import com.zhangzlyuyx.easy.mybatis.Condition;
 import com.zhangzlyuyx.easy.mybatis.IPageQuery;
 import com.zhangzlyuyx.easy.mybatis.IPageResult;
 import com.zhangzlyuyx.easy.mybatis.util.MapperUtils;
 
-import tk.mybatis.mapper.common.IdsMapper;
 import tk.mybatis.mapper.common.Mapper;
 import tk.mybatis.mapper.entity.Example;
 
@@ -125,62 +122,77 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 		return MapperUtils.updateByExample(this.getMapper(), entity, example, selective);
 	}
 	
+	@Override
 	public T selectByPrimaryKey(Object key) {
 		return MapperUtils.selectByPrimaryKey(this.getMapper(), key);
 	}
 	
+	@Override
 	public List<T> selectByIds(String ids) {
 		return MapperUtils.selectByIds(this.getMapper(), ids);
 	}
 	
+	@Override
 	public List<T> selectAll() {
 		return MapperUtils.selectAll(this.getMapper());
 	}
 	
+	@Override
 	public int selectCountByEntity(T record) {
 		return MapperUtils.selectCountByEntity(this.getMapper(), record);
 	}
 	
+	@Override
 	public List<T> selectByEntity(T record) {
 		return MapperUtils.selectByEntity(this.getMapper(), record);
 	}
 	
+	@Override
 	public int selectCountByMap(Map<String, Object> queyMap) {
 		return MapperUtils.selectCountByMap(this.getMapper(), this.getEntityClass(), queyMap);
 	}
 	
+	@Override
 	public List<T> selectByMap(Map<String, Object> queryMap) {
 		return MapperUtils.selectByMap(this.getMapper(), this.getEntityClass(), queryMap);
 	}
 	
+	@Override
 	public List<T> selectByMap(Map<String, Object> queryMap, Integer pageNo, Integer pageSize, String orderByClause, String... properties) {
 		return MapperUtils.selectByMap(this.getMapper(), this.getEntityClass(), queryMap, pageNo, pageSize, orderByClause, properties);
 	}
 	
+	@Override
 	public int selectCountByCondition(List<Condition> conditions) {
 		return MapperUtils.selectCountByCondition(this.getMapper(), this.getEntityClass(), conditions);
 	}
 	
+	@Override
 	public List<T> selectByCondition(List<Condition> conditions) {
 		return MapperUtils.selectByCondition(this.getMapper(), this.getEntityClass(), conditions);
 	}
 	
+	@Override
 	public List<T> selectByCondition(List<Condition> conditions, Integer pageNo, Integer pageSize, String orderByClause, String... properties) {
 		return MapperUtils.selectByCondition(this.getMapper(), this.getEntityClass(), conditions, pageNo, pageSize, orderByClause, properties);
 	}
 	
+	@Override
 	public IPageResult<T> selectByPage(IPageQuery pageQuery) {
 		return MapperUtils.selectByPage(this.getMapper(), this.getEntityClass(), pageQuery);
 	}
 	
+	@Override
 	public int selectCountByExample(Example example) {
 		return MapperUtils.selectCountByExample(this.getMapper(), example);
 	}
 	
+	@Override
 	public List<T> selectByExample(Example example) {
 		return MapperUtils.selectByExample(this.getMapper(), example);
 	}
 	
+	@Override
 	public List<T> selectByExample(Example example, Integer pageNo, Integer pageSize) {
 		return MapperUtils.selectByExample(this.getMapper(), example, pageNo, pageSize);
 	}

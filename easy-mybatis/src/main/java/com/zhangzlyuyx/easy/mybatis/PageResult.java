@@ -56,4 +56,19 @@ public class PageResult<T> implements IPageResult<T> {
 	public void setRows(List<T> rows) {
 		this.rows = rows;
 	}
+	
+	/**
+	 * PageResult
+	 */
+	public PageResult() {
+		
+	}
+	
+	/**
+	 * PageResult
+	 * @param rows
+	 */
+	public PageResult(List<T> rows) {
+		this.rows = rows;
+	}
 }

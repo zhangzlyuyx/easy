@@ -2,39 +2,33 @@ package com.zhangzlyuyx.easy.mybatis;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
-import com.zhangzlyuyx.easy.core.util.StringUtils;
-
-import tk.mybatis.mapper.entity.Example;
-import tk.mybatis.mapper.entity.Example.Criteria;
 
 /**
  * mybatis 条件
  * @author zhangzlyuyx
  *
  */
-public class Condition implements Serializable, Cloneable {
+public class Condition implements ICondition, Serializable, Cloneable {
 
 	private static final long serialVersionUID = 7365886177260173253L;
-	
-	private static final String OPERATOR_LIKE = "LIKE";
-	private static final String OPERATOR_IN = "IN";
-	private static final String OPERATOR_IS = "IS";
-	private static final String OPERATOR_BETWEEN = "BETWEEN";
-	private static final List<String> OPERATORS = Arrays.asList("<>", "<=", "<", ">=", ">", "=", "!=", OPERATOR_IN);
-	private static final String VALUE_NULL = "NULL";
 	
 	/**
 	 * 字段
 	 */
 	private String field;
 	
+	/**
+	 * 获取字段名
+	 */
 	public String getField() {
-		return field;
+		return this.field;
 	}
 	
+	/**
+	 * 设置字段值
+	 * @param field
+	 */
 	public void setField(String field) {
 		this.field = field;
 	}
@@ -52,10 +46,17 @@ public class Condition implements Serializable, Cloneable {
 	 */
 	private String operator;
 	
+	/**
+	 * 获取运算符
+	 */
 	public String getOperator() {
 		return this.operator;
 	}
 	
+	/**
+	 * 设置运算符
+	 * @param operator
+	 */
 	public void setOperator(String operator) {
 		this.operator = operator;
 	}
@@ -86,6 +87,9 @@ public class Condition implements Serializable, Cloneable {
 		this.secondValue = secondValue;
 	}
 	
+	/**
+	 * 子条件集合
+	 */
 	private List<Condition> conditions;
 	
 	public List<Condition> getConditions() {
@@ -134,64 +138,31 @@ public class Condition implements Serializable, Cloneable {
 	
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
-		Condition condition = new Condition(this.getField(), this.getOperator(), this.getValue(), this.getSecondValue());
-		return condition;
+		Condition desCondition = new Condition(this.getField(), this.getOperator(), this.getValue(), this.getSecondValue());
+		copyCondition(this, desCondition);
+		return desCondition;
 	}
 	
 	/**
-	 * 条件操作处理
-	 * @param example
-	 * @param criteriaNew
-	 * @return
+	 * 拷贝 condition 属性
+	 * @param srcCondition 源 condition
+	 * @param desCondition 目标 condition
 	 */
-	public boolean criteriaOperator(Example example, Criteria criteriaNew) {
-		if(StringUtils.isEmpty(this.getColumnName()) && StringUtils.isEmpty(this.getOperator()) && this.getValue() == null) {
-			return false;
+	public static void copyCondition(Condition srcCondition, Condition desCondition) {
+		if(srcCondition == null || desCondition == null) {
+			return;
 		}
-		//获取操作类型
-		String operator = !StringUtils.isEmpty(this.getOperator()) ? this.getOperator() : "";
-		if(operator.equalsIgnoreCase("=")){
-			criteriaNew.andEqualTo(this.getColumnName(), this.getValue());
-		}else if(operator.equalsIgnoreCase("!=") || operator.equalsIgnoreCase("<>")){
-			criteriaNew.andNotEqualTo(this.getColumnName(), this.getValue());
-		}else if(operator.equalsIgnoreCase("like")){
-			criteriaNew.andLike(this.getColumnName(), this.getValue().toString());
-		}else if(operator.equalsIgnoreCase("not like")){
-			criteriaNew.andNotLike(this.getColumnName(), this.getValue().toString());
-		}else if(operator.equalsIgnoreCase(">")){
-			criteriaNew.andGreaterThan(this.getColumnName(), this.getValue());
-		}else if(operator.equalsIgnoreCase(">=")){
-			criteriaNew.andGreaterThanOrEqualTo(this.getColumnName(), this.getValue());
-		}else if(operator.equalsIgnoreCase("<")){
-			criteriaNew.andLessThan(this.getColumnName(), this.getValue());
-		}else if(operator.equalsIgnoreCase("<=")){
-			criteriaNew.andLessThanOrEqualTo(this.getColumnName(), this.getValue());
-		}else if(operator.equalsIgnoreCase("in")){
-			criteriaNew.andIn(this.getColumnName(), (List<?>)this.getValue());
-		}else if(operator.equalsIgnoreCase("not in")){
-			criteriaNew.andNotIn(this.getColumnName(), (List<?>)this.getValue());
-		}else if(operator.equalsIgnoreCase("isnull") || operator.equalsIgnoreCase("is null")){
-			criteriaNew.andIsNull(this.getColumnName());
-		}else if(operator.equalsIgnoreCase("is not null")){
-			criteriaNew.andIsNotNull(this.getColumnName());
-		}else if(operator.equalsIgnoreCase("between")){
-			criteriaNew.andBetween(this.getColumnName(), this.getValue(), this.getSecondValue());
-		}  else{
-			// 其他不支持操作处理
-			if(this.getValue() != null){
-				criteriaNew.andCondition(this.getColumnName(), this.getValue());
-			}else{
-				criteriaNew.andCondition(this.getColumnName());
+		desCondition.setField(srcCondition.getField());
+		desCondition.setOperator(srcCondition.getOperator());
+		desCondition.setValue(srcCondition.getValue());
+		desCondition.setSecondValue(srcCondition.getSecondValue());
+		if(srcCondition.getConditions().size() > 0) {
+			for(Condition srcSubCondition : srcCondition.getConditions()) {
+				Condition subDesCondition = new Condition(srcSubCondition.getField(), srcSubCondition.getValue());
+				copyCondition(srcSubCondition, subDesCondition);
+				desCondition.getConditions().add(subDesCondition);
 			}
 		}
-		//递归嵌套条件处理
-		if(this.getConditions() != null && this.getConditions().size() > 0) {
-			Criteria nextCriteria = example.createCriteria();
-			for(Condition nextCondition : this.getConditions()) {
-				nextCondition.criteriaOperator(example, nextCriteria);
-			}
-		}
-		return true;
 	}
 	
 	/**
