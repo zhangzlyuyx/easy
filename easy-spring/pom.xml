@@ -9,25 +9,33 @@
 		<artifactId>easy-parent</artifactId>
 		<version>0.0.2</version>
 	</parent>
-	<artifactId>easy-core</artifactId>
-	<name>easy-core</name>
-	<url>https://github.com/zhangzlyuyx/easy</url>
+	<artifactId>easy-spring</artifactId>
+	<name>easy-spring</name>
+	<url>http://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 	<dependencies>
-		
-		<!-- fastjson -->
+		<!-- easy-core -->
 		<dependency>
-			<groupId>com.alibaba</groupId>
-			<artifactId>fastjson</artifactId>
+			<groupId>com.zhangzlyuyx</groupId>
+			<artifactId>easy-core</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		
-		<!-- hutool -->
+		<!-- javax.servlet-api -->
 		<dependency>
-			<groupId>cn.hutool</groupId>
-			<artifactId>hutool-all</artifactId>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		
+		<!-- spring-webmvc -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		
 		<!-- junit -->
@@ -36,6 +44,5 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
 	</dependencies>
 </project>

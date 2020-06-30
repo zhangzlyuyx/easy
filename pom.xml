@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.zhangzlyuyx</groupId>
 	<artifactId>easy-parent</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 	<packaging>pom</packaging>
 	<name>easy-parent</name>
 	<description>easy-parent</description>
@@ -41,6 +39,8 @@
 		<junit.version>3.8.1</junit.version>
 		<fastjson.version>1.2.40</fastjson.version>
 		<hutool.version>4.3.2</hutool.version>
+		<servlet.version>3.1.0</servlet.version>
+		<spring.version>4.3.24.RELEASE</spring.version>
 	</properties>
 
 	<dependencyManagement>
@@ -59,6 +59,21 @@
 				<version>${hutool.version}</version>
 			</dependency>
 
+			<!-- javax.servlet-api -->
+			<dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>javax.servlet-api</artifactId>
+				<version>${servlet.version}</version>
+			</dependency>
+			
+			<!-- spring-webmvc -->
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-webmvc</artifactId>
+				<version>${spring.version}</version>
+				<scope>provided</scope>
+			</dependency>
+		
 			<!-- junit -->
 			<dependency>
 				<groupId>junit</groupId>
@@ -72,7 +87,9 @@
 	<modules>
 		<module>easy-core</module>
 		<module>easy-mybatis</module>
-	</modules>
+    <module>easy-shiro</module>
+    <module>easy-spring</module>
+  </modules>
 
 	<distributionManagement>
 		<snapshotRepository>

@@ -9,9 +9,9 @@ package com.zhangzlyuyx.easy.core;
 public interface ResultCallback<T> {
 
 	/**
-	 * 回调方法
+	 * 结果回调方法
 	 * @param t 参数
 	 * @return
 	 */
-	IResult<T> callback(T t);
+	IResult<T> result(T t);
 }
