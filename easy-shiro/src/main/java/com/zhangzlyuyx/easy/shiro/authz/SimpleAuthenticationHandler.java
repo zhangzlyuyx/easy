@@ -4,12 +4,15 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authz.Permission;
 
 import com.zhangzlyuyx.easy.shiro.ShiroPrincipal;
 import com.zhangzlyuyx.easy.shiro.ShiroToken;
+import com.zhangzlyuyx.easy.shiro.filter.AuthenticationFilter;
 
 /**
  * 简易认证处理器抽象类
@@ -51,6 +54,12 @@ public abstract class SimpleAuthenticationHandler implements AuthenticationHandl
 		if(SimpleAuthenticationHandler.getInstance() == null) {
 			SimpleAuthenticationHandler.setInstance(this);
 		}
+	}
+	
+	@Override
+	public AuthenticationToken createToken(AuthenticationFilter authenticationFilter, AuthenticationToken token,
+			ServletRequest request, ServletResponse response) {
+		return token;
 	}
 
 	@Override

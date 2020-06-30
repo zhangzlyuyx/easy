@@ -3,17 +3,20 @@ package com.zhangzlyuyx.easy.shiro.filter;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
+import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
 
 import com.zhangzlyuyx.easy.shiro.Constant;
 import com.zhangzlyuyx.easy.shiro.authc.CasToken;
+import com.zhangzlyuyx.easy.shiro.authz.AuthenticationHandler;
+import com.zhangzlyuyx.easy.shiro.util.ShiroUtils;
 
 /**
  * cas 过滤器
  * @author zhangzlyuyx
  *
  */
-public class CasAuthenticationFilter extends org.apache.shiro.cas.CasFilter {
+public class CasAuthenticationFilter extends org.apache.shiro.cas.CasFilter implements AuthenticationFilter {
 
 	/**
 	 * shiro token 分组
@@ -28,6 +31,7 @@ public class CasAuthenticationFilter extends org.apache.shiro.cas.CasFilter {
 	 * 获取 token 分组
 	 * @return
 	 */
+	@Override
 	public String getGroup() {
 		return this.group;
 	}
@@ -42,7 +46,6 @@ public class CasAuthenticationFilter extends org.apache.shiro.cas.CasFilter {
 	
 	@Override
 	protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
-		// TODO Auto-generated method stub
 		return super.isAccessAllowed(request, response, mappedValue);
 	}
 	
@@ -51,6 +54,12 @@ public class CasAuthenticationFilter extends org.apache.shiro.cas.CasFilter {
 		org.apache.shiro.cas.CasToken casToken = (org.apache.shiro.cas.CasToken)super.createToken(request, response);
 		CasToken token = CasToken.parse(casToken);
 		token.setGroup(this.getGroup());
-		return token;
+		
+		AuthenticationHandler authenticationHandler = ShiroUtils.getAuthenticationHandler(request);
+		if(authenticationHandler == null) {
+			throw new AuthenticationException("authenticationHandler is empty");
+		}
+		AuthenticationToken authenticationToken = authenticationHandler.createToken(this, token, request, response);
+		return authenticationToken;
 	}
 }

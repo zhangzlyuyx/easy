@@ -2,9 +2,14 @@ package com.zhangzlyuyx.easy.shiro.authz;
 
 import java.util.Collection;
 
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authz.Permission;
+
+import com.zhangzlyuyx.easy.shiro.filter.AuthenticationFilter;
 
 /**
  * 认证处理器接口
@@ -12,6 +17,16 @@ import org.apache.shiro.authz.Permission;
  *
  */
 public interface AuthenticationHandler {
+	
+	/**
+	 * 创建  token
+	 * @param authenticationFilter
+	 * @param token
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	AuthenticationToken createToken(AuthenticationFilter authenticationFilter, AuthenticationToken token, ServletRequest request, ServletResponse response);
 	
 	/**
 	 * 获取 token 认证主体信息

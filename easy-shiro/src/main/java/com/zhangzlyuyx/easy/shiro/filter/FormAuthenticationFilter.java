@@ -3,17 +3,20 @@ package com.zhangzlyuyx.easy.shiro.filter;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
+import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
 
 import com.zhangzlyuyx.easy.shiro.Constant;
 import com.zhangzlyuyx.easy.shiro.authc.UsernamePasswordToken;
+import com.zhangzlyuyx.easy.shiro.authz.AuthenticationHandler;
+import com.zhangzlyuyx.easy.shiro.util.ShiroUtils;
 
 /**
  * 表单 过滤器
  * @author zhangzlyuyx
  *
  */
-public class FormAuthenticationFilter extends org.apache.shiro.web.filter.authc.FormAuthenticationFilter {
+public class FormAuthenticationFilter extends org.apache.shiro.web.filter.authc.FormAuthenticationFilter implements AuthenticationFilter {
 
 	/**
 	 * shiro token 分组
@@ -28,6 +31,7 @@ public class FormAuthenticationFilter extends org.apache.shiro.web.filter.authc.
 	 * 获取 token 分组
 	 * @return
 	 */
+	@Override
 	public String getGroup() {
 		return this.group;
 	}
@@ -46,10 +50,16 @@ public class FormAuthenticationFilter extends org.apache.shiro.web.filter.authc.
 	}
 	
 	@Override
-	protected AuthenticationToken createToken(String username, String password, boolean rememberMe, String host) {
-		org.apache.shiro.authc.UsernamePasswordToken usernamePasswordToken = (org.apache.shiro.authc.UsernamePasswordToken)super.createToken(username, password, rememberMe, host);
+	protected AuthenticationToken createToken(ServletRequest request, ServletResponse response) {
+		org.apache.shiro.authc.UsernamePasswordToken usernamePasswordToken = (org.apache.shiro.authc.UsernamePasswordToken)super.createToken(request, response);
 		UsernamePasswordToken token = UsernamePasswordToken.parse(usernamePasswordToken);
 		token.setGroup(this.getGroup());
-		return token;
+		
+		AuthenticationHandler authenticationHandler = ShiroUtils.getAuthenticationHandler(request);
+		if(authenticationHandler == null) {
+			throw new AuthenticationException("authenticationHandler is empty");
+		}
+		AuthenticationToken authenticationToken = authenticationHandler.createToken(this, token, request, response);
+		return authenticationToken;
 	}
 }
