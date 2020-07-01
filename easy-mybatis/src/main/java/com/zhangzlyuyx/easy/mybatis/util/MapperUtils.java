@@ -186,7 +186,11 @@ public class MapperUtils {
 	 * @return
 	 */
 	public static <T> int updateByExample(Mapper<T> mapper, T entity, Example example, boolean selective) {
-		return mapper.updateByExample(entity, example);
+		if(selective) {
+			return mapper.updateByExampleSelective(entity, example);
+		} else {
+			return mapper.updateByExample(entity, example);
+		}
 	}
 	
 	/******************** end update ********************/
