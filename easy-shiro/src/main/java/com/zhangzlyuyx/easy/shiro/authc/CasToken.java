@@ -42,6 +42,11 @@ public class CasToken extends org.apache.shiro.cas.CasToken implements ShiroToke
 	 * 认证处理器
 	 */
 	private AuthenticationHandler authenticationHandler;
+	
+	/**
+	 * 认证域名称
+	 */
+	private String realmName;
 
 	public CasToken(String ticket) {
 		super(ticket);
@@ -93,7 +98,18 @@ public class CasToken extends org.apache.shiro.cas.CasToken implements ShiroToke
 	}
 	
 	@Override
+	public String getRealmName() {
+		return this.realmName;
+	}
+	
+	@Override
+	public void setRealmName(String realmName) {
+		this.realmName = realmName;
+	}
+	
+	@Override
 	public void validation(ShiroRealm realm, Map<String, Object> params) throws AuthenticationException {
+		this.setRealmName(realm.getName());
 		TicketValidator ticketValidator = (TicketValidator)params.get(Constant.CAS_TICKETVALIDATOR_PARAM);
 		String ticket = (String)this.getCredentials();
         if (!StringUtils.hasText(ticket)) {

@@ -50,6 +50,18 @@ public interface ShiroToken {
 	void setAuthenticationHandler(AuthenticationHandler authenticationHandler);
 	
 	/**
+	 * 获取认证域名称
+	 * @return
+	 */
+	String getRealmName();
+	
+	/**
+	 * 设置认证域名称
+	 * @param realmName
+	 */
+	void setRealmName(String realmName);
+	
+	/**
 	 * 执行 token 验证
 	 * @param realm realm
 	 * @param params 参数集合

@@ -6,13 +6,16 @@ import java.util.HashSet;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authz.Permission;
 
+import com.zhangzlyuyx.easy.shiro.Constant;
 import com.zhangzlyuyx.easy.shiro.ShiroPrincipal;
 import com.zhangzlyuyx.easy.shiro.ShiroToken;
 import com.zhangzlyuyx.easy.shiro.filter.AuthenticationFilter;
+import com.zhangzlyuyx.easy.spring.util.SpringUtils;
 
 /**
  * 简易认证处理器抽象类
@@ -59,6 +62,14 @@ public abstract class SimpleAuthenticationHandler implements AuthenticationHandl
 	@Override
 	public AuthenticationToken createToken(AuthenticationFilter authenticationFilter, AuthenticationToken token,
 			ServletRequest request, ServletResponse response) {
+		
+		if(token instanceof ShiroToken) {
+			ShiroToken shiroToken = (ShiroToken)token;
+			shiroToken.getAttributes().put(Constant.SHIROTOKEN__ATTRIBUTE_USERAGENT, SpringUtils.getUserAgent((HttpServletRequest)request));
+			shiroToken.getAttributes().put(Constant.SHIROTOKEN__ATTRIBUTE_CLIENTIP, SpringUtils.getClientIP((HttpServletRequest)request));
+			shiroToken.getAttributes().put(Constant.SHIROTOKEN__ATTRIBUTE_URL, SpringUtils.getRequestUrl(request));
+		}
+		
 		return token;
 	}
 
