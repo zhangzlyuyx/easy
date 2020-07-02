@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.zhangzlyuyx</groupId>
 	<artifactId>easy-parent</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.4</version>
 	<packaging>pom</packaging>
 	<name>easy-parent</name>
 	<description>easy-parent</description>
@@ -41,6 +43,7 @@
 		<hutool.version>4.3.2</hutool.version>
 		<servlet.version>3.1.0</servlet.version>
 		<spring.version>4.3.24.RELEASE</spring.version>
+		<slf4j-api.version>1.7.30</slf4j-api.version>
 	</properties>
 
 	<dependencyManagement>
@@ -65,7 +68,7 @@
 				<artifactId>javax.servlet-api</artifactId>
 				<version>${servlet.version}</version>
 			</dependency>
-			
+
 			<!-- spring-webmvc -->
 			<dependency>
 				<groupId>org.springframework</groupId>
@@ -73,7 +76,15 @@
 				<version>${spring.version}</version>
 				<scope>provided</scope>
 			</dependency>
-		
+
+			<!-- slf4j-api -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j-api.version}</version>
+				<scope>provided</scope>
+			</dependency>
+
 			<!-- junit -->
 			<dependency>
 				<groupId>junit</groupId>
@@ -87,9 +98,9 @@
 	<modules>
 		<module>easy-core</module>
 		<module>easy-mybatis</module>
-    <module>easy-shiro</module>
-    <module>easy-spring</module>
-  </modules>
+		<module>easy-shiro</module>
+		<module>easy-spring</module>
+	</modules>
 
 	<distributionManagement>
 		<snapshotRepository>

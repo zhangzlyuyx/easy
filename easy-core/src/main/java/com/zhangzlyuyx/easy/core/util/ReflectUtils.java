@@ -2,6 +2,7 @@ package com.zhangzlyuyx.easy.core.util;
 
 import java.lang.reflect.Field;
 
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ReflectUtil;
 
 /**
@@ -39,5 +40,9 @@ public class ReflectUtils {
 	 */
 	public static Object getFieldValue(Object obj, String name) {
 		return ReflectUtil.getFieldValue(obj, name);
+	}
+	
+	public static <T> T convert(Object obj, Class<T> classz) {
+		return null;
 	}
 }
