@@ -18,6 +18,16 @@ public class Constant {
 	public static final String SHIROTOKEN_DEAULT_ACCESS_TOKEN_NAME = "accessToken";
 	
 	/**
+	 * shiro token 属性 headers 信息
+	 */
+	public static final String SHIROTOKEN__ATTRIBUTE_HEADERS = "headers";
+	
+	/**
+	 * shiro token 属性 parameters 信息
+	 */
+	public static final String SHIROTOKEN__ATTRIBUTE_PARAMETERS = "parameters";
+	
+	/**
 	 * shiro token 属性 ua 信息
 	 */
 	public static final String SHIROTOKEN__ATTRIBUTE_USERAGENT = "userAgent";

@@ -9,6 +9,7 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authz.Permission;
 
+import com.zhangzlyuyx.easy.core.Result;
 import com.zhangzlyuyx.easy.shiro.filter.AuthenticationFilter;
 
 /**
@@ -27,6 +28,16 @@ public interface AuthenticationHandler {
 	 * @return
 	 */
 	AuthenticationToken createToken(AuthenticationFilter authenticationFilter, AuthenticationToken token, ServletRequest request, ServletResponse response);
+	
+	/**
+	 * 验证 token
+	 * @param authenticationFilter
+	 * @param token
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	Result<String> validateToken(AuthenticationFilter authenticationFilter, AuthenticationToken token, ServletRequest request, ServletResponse response);
 	
 	/**
 	 * 获取 token 认证主体信息

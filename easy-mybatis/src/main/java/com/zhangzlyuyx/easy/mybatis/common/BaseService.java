@@ -1,5 +1,6 @@
 package com.zhangzlyuyx.easy.mybatis.common;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -53,6 +54,14 @@ public interface BaseService<T> {
 	int insertList(List<T> recordList);
 	
 	/**
+	 * 执行 insert sql 语句
+	 * @param sql
+	 * @param parameter
+	 * @return
+	 */
+	int insertBySql(String sql, Object parameter);
+	
+	/**
 	 * 根据主键条件删除数据 
 	 * @param key 主键查询条件 
 	 * @return
@@ -93,6 +102,14 @@ public interface BaseService<T> {
 	 * @return
 	 */
 	int deleteByExample(Example example);
+	
+	/**
+	 * 执行 delete sql 语句
+	 * @param sql
+	 * @param parameter
+	 * @return
+	 */
+	int deleteBySql(String sql, Object parameter);
 	
 	/**
 	 * 根据主键条件更新实体
@@ -159,6 +176,14 @@ public interface BaseService<T> {
 	 * @return
 	 */
 	int updateByExample(T entity, Example example, boolean selective);
+	
+	/**
+	 * 执行 update sql 语句
+	 * @param sql
+	 * @param parameter
+	 * @return
+	 */
+	int updateBySql(String sql, Object parameter);
 	
 	/**
 	 * 根据主键查询实体
@@ -282,4 +307,47 @@ public interface BaseService<T> {
 	 * @return
 	 */
 	List<T> selectByExample(Example example, Integer pageNo, Integer pageSize);
+	
+	/**
+	 * 执行 select sql 查询实体列表
+	 * @param sql
+	 * @param parameter
+	 * @return
+	 */
+	List<T> selectListBySql(String sql, Object parameter);
+	
+	/**
+	 * 执行 select sql 查询map列表
+	 * @param sql
+	 * @param parameter
+	 * @return
+	 */
+	List<Map<String, Object>> selectMapListBySql(String sql, Object parameter);
+	
+	/**
+	 * 执行 select sql 查询指定类型列表
+	 * @param sql
+	 * @param parameter
+	 * @param resultType
+	 * @return
+	 */
+	<E> List<E> selectListBySql(String sql, Object parameter, Class<E> resultType);
+	
+	/**
+	 * 获取 mysql 服务器时间
+	 * @return
+	 */
+	Date getMySqlDate();
+	
+	/**
+	 * 获取 oracle 服务器时间
+	 * @return
+	 */
+	Date getOracleDate();
+	
+	/**
+	 * 获取 sqlserver 服务器时间
+	 * @return
+	 */
+	Date getSqlServerDate();
 }

@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.zhangzlyuyx</groupId>
 	<artifactId>easy-parent</artifactId>
-	<version>0.0.4</version>
+	<version>0.0.5</version>
 	<packaging>pom</packaging>
 	<name>easy-parent</name>
 	<description>easy-parent</description>
@@ -39,7 +37,7 @@
 		<maven.compiler.target>1.7</maven.compiler.target>
 		<maven.test.skip>true</maven.test.skip>
 		<junit.version>3.8.1</junit.version>
-		<fastjson.version>1.2.40</fastjson.version>
+		<fastjson.version>1.2.72</fastjson.version>
 		<hutool.version>4.3.2</hutool.version>
 		<servlet.version>3.1.0</servlet.version>
 		<spring.version>4.3.24.RELEASE</spring.version>
@@ -100,7 +98,8 @@
 		<module>easy-mybatis</module>
 		<module>easy-shiro</module>
 		<module>easy-spring</module>
-	</modules>
+    <module>easy-storage</module>
+  </modules>
 
 	<distributionManagement>
 		<snapshotRepository>

@@ -1,8 +1,12 @@
 package com.zhangzlyuyx.easy.core.util;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.UUID;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.IORuntimeException;
 import cn.hutool.setting.Setting;
 import cn.hutool.setting.dialect.Props;
 
@@ -45,6 +49,55 @@ public class FileUtils {
 	 */
 	public static String getExtName(String fileName) {
 		return FileUtil.extName(fileName);
+	}
+	
+	/**
+	 * 获取随机文件名
+	 * @return
+	 */
+	public static String getRandomName(String extName) {
+		return UUID.randomUUID().toString().replace("-", "") + (extName != null ? "." + extName.trim() : "");
+	}
+	
+	/**
+	 * 判断文件是否存在，
+	 * @param path
+	 * @return
+	 */
+	public static boolean exist(String path) {
+		return FileUtil.exist(path);
+	}
+	
+	/**
+	 * 将流的内容写入文件
+	 * @param inputStream
+	 * @param dest
+	 * @return
+	 * @throws IORuntimeException
+	 */
+	public static File writeFile(InputStream inputStream, File dest) throws IORuntimeException {
+		return FileUtil.writeFromStream(inputStream, dest);
+	}
+	
+	/**
+	 * 写数据到文件中
+	 * @param data
+	 * @param dest
+	 * @return
+	 */
+	public static File writeFile(byte[] data, File dest) throws IORuntimeException {
+		return FileUtil.writeBytes(data, dest);
+	}
+	
+	/**
+	 * 将文件写入流中
+	 * @param file
+	 * @param outputStream
+	 * @return
+	 */
+	public static boolean writeToStream(File file, OutputStream outputStream) throws IORuntimeException {
+		FileUtil.writeToStream(file, outputStream);
+		return true;
 	}
 	
 	/******************** begin properties ********************/

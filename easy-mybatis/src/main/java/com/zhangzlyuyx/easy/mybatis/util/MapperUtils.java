@@ -1,10 +1,19 @@
 package com.zhangzlyuyx.easy.mybatis.util;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.ibatis.builder.StaticSqlSource;
+import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.mapping.ResultMap;
+import org.apache.ibatis.mapping.ResultMapping;
+import org.apache.ibatis.mapping.SqlCommandType;
+import org.apache.ibatis.mapping.SqlSource;
+import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.RowBounds;
+import org.apache.ibatis.session.SqlSession;
 
 import com.zhangzlyuyx.easy.core.util.StringUtils;
 import com.zhangzlyuyx.easy.mybatis.Condition;
@@ -460,6 +469,12 @@ public class MapperUtils {
 		return example;
 	}
 	
+	/**
+	 * 创建 Example
+	 * @param enityClass
+	 * @param pageQuery
+	 * @return
+	 */
 	public static Example createExample(Class<?> enityClass, IPageQuery pageQuery) {
 		Example example = createExample(enityClass);
 		if(pageQuery.getConditions().size() > 0) {
@@ -479,7 +494,7 @@ public class MapperUtils {
 	}
 	
 	/**
-	 * 条件操作处理
+	 * example 条件操作递归处理
 	 * @param condition
 	 * @param example
 	 * @param criteriaNew
@@ -533,5 +548,35 @@ public class MapperUtils {
 			}
 		}
 		return true;
+	}
+	
+	/**
+	 * 获取 mybatis mappedStatement Id 
+	 * @param sqlSession
+	 * @param sql
+	 * @param sqlCommandType
+	 * @param resultType
+	 * @return
+	 */
+	public static String getMappedStatementId(SqlSession sqlSession, SqlCommandType sqlCommandType, String sql, Class<?> parameterType, Class<?> resultType) {
+		StringBuilder msIdBuilder = new StringBuilder(sqlCommandType.toString());
+		msIdBuilder.append(".");
+		msIdBuilder.append(((resultType != null ? resultType : "") + sql + (parameterType != null ? parameterType : "")).hashCode());
+    	String msId = msIdBuilder.toString();
+    	Configuration configuration = sqlSession.getConfiguration();
+    	if(configuration.hasStatement(msId, false)) {
+    		return msId;
+    	}
+    	SqlSource sqlSource = null;
+		if(parameterType == null) {
+			sqlSource = new StaticSqlSource(configuration, sql);
+		} else {
+			sqlSource = configuration.getDefaultScriptingLanuageInstance().createSqlSource(configuration, sql, parameterType);
+		}
+    	List<ResultMap> resultMaps = new ArrayList<>();
+    	resultMaps.add(new ResultMap.Builder(configuration, "defaultResultMap", resultType, new ArrayList<ResultMapping>(0)).build());
+    	MappedStatement ms = new MappedStatement.Builder(configuration, msId, sqlSource, sqlCommandType).resultMaps(resultMaps).build();
+    	configuration.addMappedStatement(ms);
+    	return msId;
 	}
 }

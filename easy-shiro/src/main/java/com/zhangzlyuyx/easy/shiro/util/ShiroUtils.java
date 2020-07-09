@@ -193,7 +193,6 @@ public class ShiroUtils {
 			return false;
 		}
 		//验证token分组一致性 
-		//if(authenticationFilter.getGroup().equalsIgnoreCase(shiroToken.getGroup())) {
 		if(!authenticationFilter.getGroup().equalsIgnoreCase(shiroToken.getGroup())) {
 			subject.logout();
 			return false;

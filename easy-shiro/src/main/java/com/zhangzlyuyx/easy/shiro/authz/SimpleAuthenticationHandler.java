@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authz.Permission;
 
+import com.zhangzlyuyx.easy.core.Result;
 import com.zhangzlyuyx.easy.shiro.Constant;
 import com.zhangzlyuyx.easy.shiro.ShiroPrincipal;
 import com.zhangzlyuyx.easy.shiro.ShiroToken;
@@ -65,12 +66,21 @@ public abstract class SimpleAuthenticationHandler implements AuthenticationHandl
 		
 		if(token instanceof ShiroToken) {
 			ShiroToken shiroToken = (ShiroToken)token;
+			shiroToken.setGroup(authenticationFilter.getGroup());
+			shiroToken.setAuthenticationHandler(authenticationFilter.getAuthenticationHandler(request));
 			shiroToken.getAttributes().put(Constant.SHIROTOKEN__ATTRIBUTE_USERAGENT, SpringUtils.getUserAgent((HttpServletRequest)request));
 			shiroToken.getAttributes().put(Constant.SHIROTOKEN__ATTRIBUTE_CLIENTIP, SpringUtils.getClientIP((HttpServletRequest)request));
 			shiroToken.getAttributes().put(Constant.SHIROTOKEN__ATTRIBUTE_URL, SpringUtils.getRequestUrl(request));
 		}
 		
 		return token;
+	}
+	
+	@Override
+	public Result<String> validateToken(AuthenticationFilter authenticationFilter, AuthenticationToken token,
+			ServletRequest request, ServletResponse response) {
+		
+		return new Result<>(true, "");
 	}
 
 	@Override

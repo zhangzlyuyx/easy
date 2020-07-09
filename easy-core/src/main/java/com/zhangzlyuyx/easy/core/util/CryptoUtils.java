@@ -1,5 +1,6 @@
 package com.zhangzlyuyx.easy.core.util;
 
+import java.io.File;
 import java.io.InputStream;
 
 import cn.hutool.core.codec.Base64;
@@ -30,6 +31,15 @@ public class CryptoUtils {
 	 */
 	public static String encodeMd5(InputStream data){
 		return SecureUtil.md5(data);
+	}
+	
+	/**
+	 * MD5加密文件，生成16进制MD5字符串
+	 * @param file
+	 * @return
+	 */
+	public static String encodeMd5(File file){
+		return SecureUtil.md5(file);
 	}
 	
 	/******************** end md5 ********************/

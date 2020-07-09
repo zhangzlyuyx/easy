@@ -2,7 +2,9 @@ package com.zhangzlyuyx.easy.spring.util;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -134,6 +136,23 @@ public class SpringUtils {
 	
 	/******************** end cookie ********************/
 	
+	/******************** begin header ********************/
+	
+	/**
+	 * 获取 header map
+	 * @param request
+	 * @return
+	 */
+	public static Map<String, String> getHeaderMap(HttpServletRequest request) {
+		Map<String, String> headers = new LinkedHashMap<>();
+		Enumeration<String> headerNames = request.getHeaderNames();
+		while(headerNames.hasMoreElements()) {
+			String headerName = headerNames.nextElement();
+			headers.put(headerName, request.getHeader(headerName));
+		}
+		return headers;
+	}
+	
 	/**
 	 * 获取请求 header
 	 * @param request
@@ -170,6 +189,25 @@ public class SpringUtils {
 		ServletUtil.setHeader(response, name, value);
 	}
 	
+	/******************** end header ********************/
+	
+	/******************** begin parameter ********************/
+	
+	/**
+	 * 获取 param map
+	 * @param request
+	 * @return
+	 */
+	public static Map<String, String> getParameterMap(HttpServletRequest request) {
+		Map<String, String> params = new LinkedHashMap<>();
+		Enumeration<String> paramNames = request.getParameterNames();
+		while(paramNames.hasMoreElements()) {
+			String paramName = paramNames.nextElement();
+			params.put(paramName, request.getParameter(paramName));
+		}
+		return params;
+	}
+	
 	/**
 	 * 获取请求参数
 	 * @param request
@@ -184,6 +222,8 @@ public class SpringUtils {
 		parameter = StringUtils.trim(parameter);
 		return parameter;
 	}
+	
+	/******************** end parameter ********************/
 	
 	/**
 	 * 获得MultiPart表单文件

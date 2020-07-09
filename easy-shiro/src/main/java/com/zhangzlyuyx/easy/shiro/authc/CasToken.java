@@ -12,6 +12,7 @@ import org.jasig.cas.client.validation.TicketValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.zhangzlyuyx.easy.core.util.ConvertUtils;
 import com.zhangzlyuyx.easy.shiro.Constant;
 import com.zhangzlyuyx.easy.shiro.ShiroRealm;
 import com.zhangzlyuyx.easy.shiro.ShiroToken;
@@ -41,7 +42,7 @@ public class CasToken extends org.apache.shiro.cas.CasToken implements ShiroToke
 	/**
 	 * 认证处理器
 	 */
-	private AuthenticationHandler authenticationHandler;
+	private transient AuthenticationHandler authenticationHandler;
 	
 	/**
 	 * 认证域名称
@@ -85,6 +86,31 @@ public class CasToken extends org.apache.shiro.cas.CasToken implements ShiroToke
 	@Override
 	public void setAttributes(Map<String, Object> attributes) {
 		this.attributes = attributes;
+	}
+	
+	@Override
+	public Object getAttribute(String key) {
+		if(!this.getAttributes().containsKey(key)) {
+			return null;
+		}
+		return this.getAttributes().get(key);
+	}
+	
+	@Override
+	public <T> T getAttribute(String key, Class<T> clazz) {
+		Object value = this.getAttribute(key);
+		if(value == null) {
+			return null;
+		}
+		if(value.getClass().equals(clazz) || value.getClass().isAssignableFrom(clazz)) {
+			return (T)value;
+		}
+		return ConvertUtils.convert(clazz, value);
+	}
+	
+	@Override
+	public void setAttribute(String key, Object value) {
+		this.getAttributes().put(key, value);
 	}
 
 	@Override

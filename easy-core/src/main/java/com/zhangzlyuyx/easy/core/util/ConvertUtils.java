@@ -1,5 +1,8 @@
 package com.zhangzlyuyx.easy.core.util;
 
+import java.math.BigDecimal;
+import java.util.Date;
+
 import cn.hutool.core.convert.Convert;
 
 /**
@@ -45,5 +48,75 @@ public class ConvertUtils {
 	 */
 	public static String numberToChinese(double number, boolean isUseTraditonal) {
 		return Convert.numberToChinese(number, isUseTraditonal);
+	}
+	
+	/**
+	 * 转换为int
+	 * @param value
+	 * @param defaultValue 默认值
+	 * @return
+	 */
+	public static Integer toInteger(Object value, Integer defaultValue) {
+		return Convert.toInt(value, defaultValue);
+	}
+	
+	/**
+	 * 转换为long
+	 * @param value
+	 * @param defaultValue 默认值
+	 * @return
+	 */
+	public static Long toLong(Object value, Long defaultValue) {
+		return Convert.toLong(value, defaultValue);
+	}
+	
+	/**
+	 * 转换为double
+	 * @param value
+	 * @param defaultValue 默认值
+	 * @return
+	 */
+	public static Double toDouble(Object value, Double defaultValue) {
+		return Convert.toDouble(value, defaultValue);
+	}
+	
+	/**
+	 * 转换为字符串
+	 * @param value
+	 * @param defaultValue 默认值
+	 * @return
+	 */
+	public static String toString(Object value, String defaultValue) {
+		return Convert.toStr(value, defaultValue);
+	}
+	
+	/**
+	 * 转换为BigDecimal
+	 * @param value
+	 * @param defaultValue 默认值
+	 * @return
+	 */
+	public static BigDecimal toBigDecimal(Object value, BigDecimal defaultValue) {
+		return Convert.toBigDecimal(value, defaultValue);
+	}
+	
+	/**
+	 * 转换为Date
+	 * @param value
+	 * @param defaultValue 默认值
+	 * @return
+	 */
+	public static Date toDate(Object value, Date defaultValue) {
+		return Convert.toDate(value, defaultValue);
+	}
+	
+	/**
+	 * 转换为boolean
+	 * @param value
+	 * @param defaultValue 默认值
+	 * @return
+	 */
+	public static Boolean toBoolean(Object value, Boolean defaultValue) {
+		return Convert.toBool(value, defaultValue);
 	}
 }

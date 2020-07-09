@@ -3,6 +3,7 @@ package com.zhangzlyuyx.easy.shiro;
 import java.util.Map;
 
 import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.AuthenticationToken;
 
 import com.zhangzlyuyx.easy.shiro.authz.AuthenticationHandler;
 
@@ -11,7 +12,7 @@ import com.zhangzlyuyx.easy.shiro.authz.AuthenticationHandler;
  * @author zhangzlyuyx
  *
  */
-public interface ShiroToken {
+public interface ShiroToken extends AuthenticationToken {
 	
 	/**
 	 * 获取 token 分组
@@ -36,6 +37,28 @@ public interface ShiroToken {
 	 * @param attributes
 	 */
 	void setAttributes(Map<String, Object> attributes);
+	
+	/**
+	 * 获取属性
+	 * @param key
+	 * @return
+	 */
+	Object getAttribute(String key);
+	
+	/**
+	 * 获取属性
+	 * @param key
+	 * @param clazz
+	 * @return
+	 */
+	<T> T getAttribute(String key, Class<T> clazz);
+	
+	/**
+	 * 设置属性
+	 * @param key
+	 * @param value
+	 */
+	void setAttribute(String key, Object value);
 	
 	/**
 	 * 获取认证实现 handler
