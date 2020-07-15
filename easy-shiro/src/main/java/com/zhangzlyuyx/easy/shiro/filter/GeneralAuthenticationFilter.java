@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.realm.Realm;
 import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.zhangzlyuyx.easy.core.Result;
 import com.zhangzlyuyx.easy.core.util.StringUtils;
 import com.zhangzlyuyx.easy.shiro.Constant;
+import com.zhangzlyuyx.easy.shiro.ShiroRealm;
 import com.zhangzlyuyx.easy.shiro.ShiroToken;
 import com.zhangzlyuyx.easy.shiro.authc.AccessToken;
 import com.zhangzlyuyx.easy.shiro.authc.CasToken;
@@ -113,6 +115,11 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 		if(this.isFailureRequest(request, response)) {
 			return true;
 		}
+		//直接允许注销请求
+		if(this.isLogoutRequest(request, response)) {
+			ShiroUtils.logout();
+			return true;
+		}
 		//基本认证判断
 		boolean accessAllowed = ShiroUtils.isAccessAllowed(this, request, response, mappedValue);
 		if(!accessAllowed) {
@@ -139,24 +146,36 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 		
 		HttpServletRequest httpRequest = (HttpServletRequest)request;
 		
-		//登录请求特殊处理
-		if(this.isLoginRequest(request, response)) {
-			if(SpringUtils.isPostMethod((HttpServletRequest)request)) {
-				return this.executeLogin(request, response);
+		if(SpringUtils.isGetMethod((HttpServletRequest)request)) {
+			
+			//登录页get直接显示
+			if(this.isLoginRequest(httpRequest, response)) {
+				return true;
 			}
-			return true;
+			
+			//get 自动登录
+			if(this.isAllowGetAutoLogin()) {
+				
+				//cas 自动登录判断
+				if(this.isCasToken(httpRequest, response)) {
+					return this.executeLogin(httpRequest, response);
+				}
+				
+				//accessToken 自动登录判断
+				if(this.isAccessToken(httpRequest, response)) {
+					return this.executeLogin(httpRequest, response);
+				}
+			}
+			
+			//登录重定向
+			if(!StringUtils.isEmpty(this.getLoginUrl())) {
+				this.saveRequestAndRedirectToLogin(httpRequest, response);
+				return false;
+			} else {
+				return this.executeLogin(httpRequest, response);
+			}
 		}
 		
-		//失败请求特殊处理
-		if(this.isFailureRequest(request, response)) {
-			return true;
-		}
-		
-		//如果为 get 请求，且存在登录页，则执行登录重定向
-		if(SpringUtils.isGetMethod((HttpServletRequest)request) && !StringUtils.isEmpty(this.getLoginUrl())) {
-			this.saveRequestAndRedirectToLogin(httpRequest, response);
-			return false;
-		}
 		//执行登录请求
 		return this.executeLogin(request, response);
 	}
@@ -186,6 +205,8 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
             return this.onLoginSuccess(token, subject, request, response);
         } catch (AuthenticationException e) {
             return this.onLoginFailure(token, e, request, response);
+        } catch (Exception e) {
+            return this.onLoginFailure(token, new AuthenticationException(e), request, response);
         }
 	}
 	
@@ -200,22 +221,19 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
             log.debug( "onLoginSuccess: {}", JSONObject.toJSONString(token));
         }
 		
-		//post请求处理
-		if(SpringUtils.isPostMethod((HttpServletRequest)request)) {
-			//返回true, 表示请求需要继续处理
-			return true;
+		//get请求处理
+		if(SpringUtils.isGetMethod((HttpServletRequest)request)) {
+			
+			if(!StringUtils.isEmpty(this.getSuccessUrl()) && !this.isSuccessRequest(request, response)) {
+				//重定向到成功url
+				this.issueSuccessRedirect(request, response);
+				//返回false, 表示请求已处理
+		        return false;
+			}
 		}
 		
-		//判断是否需要重定向到成功url
-		if(!StringUtils.isEmpty(this.getSuccessUrl())) {
-			//重定向到成功url
-			this.issueSuccessRedirect(request, response);
-			//返回false, 表示请求已处理
-	        return false;
-		} else {
-			//返回true, 表示请求需要继续处理
-			return true;
-		}
+		//返回true, 表示请求需要继续处理
+		return true;
 	}
 	
 	/**
@@ -229,16 +247,37 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
             log.debug( "onLoginFailure: {}", e.getMessage());
         }
 		
-		//post请求处理
-		if(SpringUtils.isPostMethod((HttpServletRequest)request)) {
-			//输出拒绝信息
-			SpringUtils.writeDenied((HttpServletResponse)response, e.getMessage(), null);
-			//返回false, 表示请求已处理
-			return false;
+		this.setFailureAttribute(request, e);
+		
+		//get 请求
+		if(SpringUtils.isGetMethod((HttpServletRequest)request)) {
+			//判断是否需要跳转登录
+	        if(!StringUtils.isEmpty(this.getLoginUrl()) && !this.isLoginRequest(request, response)) {
+				try {
+					//重定向到成功url
+					this.redirectToLogin(request, response);
+				} catch (Exception ex) {
+					log.error(ex.getMessage(), ex);
+				}
+				//返回false, 表示请求已处理
+		        return false;
+			}
 		}
-        setFailureAttribute(request, e);
-        //返回true, 表示请求需要继续处理
-        return true;
+		//登录失败输出
+		return this.renderLoginFailure(e, request, response);
+	}
+	
+	/**
+	 * 登录失败输出
+	 * @param e
+	 * @param request
+	 * @param response
+	 */
+	protected boolean renderLoginFailure(AuthenticationException e, ServletRequest request, ServletResponse response) {
+		//输出拒绝信息
+		SpringUtils.writeDenied((HttpServletResponse)response, e.getMessage(), null);
+		//返回false, 表示请求已处理
+		return false;
 	}
 	
 	/**
@@ -256,7 +295,7 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 		} else {
 			token = this.createGeneralToken(request, response);
 		}
-		return token;
+		return this.getAuthenticationHandler(request).createToken(this, token, request, response);
 	}
 	
 	/******************** begin url ********************/
@@ -272,6 +311,37 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 	
 	public void setFailureUrl(String failureUrl) {
 		this.failureUrl = failureUrl;
+	}
+	
+	/**
+	 * 注销 url
+	 */
+	private String logoutUrl;
+	
+	public String getLogoutUrl() {
+		return logoutUrl;
+	}
+	
+	public void setLogoutUrl(String logoutUrl) {
+		this.logoutUrl = logoutUrl;
+	}
+	
+	/**
+	 * 获取 cas 服务器地址
+	 * @return
+	 */
+	public String getCasServerUrlPrefix() {
+		Realm realm = ShiroUtils.getRealm(null);
+		return (realm != null && realm instanceof ShiroRealm) ? ((ShiroRealm)realm).getCasServerUrlPrefix() : null;
+	}
+	
+	/**
+	 * 获取 cas 服务 url
+	 * @return
+	 */
+	public String getCasServiceUrl() {
+		Realm realm = ShiroUtils.getRealm(null);
+		return (realm != null && realm instanceof ShiroRealm) ? ((ShiroRealm)realm).getCasService() : null;
 	}
 	
 	/**
@@ -300,6 +370,34 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 		return this.pathsMatch(failureUrl, request);
 	}
 	
+	/**
+	 * 是否为注销请求
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	protected boolean isLogoutRequest(ServletRequest request, ServletResponse response) {
+		String logoutUrl = this.getLogoutUrl();
+		if(logoutUrl == null || logoutUrl.length() == 0) {
+			return false;
+		}
+		return this.pathsMatch(logoutUrl, request);
+	}
+	
+	/**
+	 * 是否为登录成功页
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	protected boolean isSuccessRequest(ServletRequest request, ServletResponse response) {
+		String successUrl = this.getSuccessUrl();
+		if(successUrl == null || successUrl.length() == 0) {
+			return false;
+		}
+		return this.pathsMatch(successUrl, request);
+	}
+	
 	/******************** end url ********************/
 	
 	/******************** begin usernamePasswordToken ********************/
@@ -323,16 +421,13 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 	 * @return
 	 */
 	protected UsernamePasswordToken createUsernamePasswordToken(ServletRequest request, ServletResponse response) {
-		HttpServletRequest httpRequest = (HttpServletRequest) request;
 		UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken();
-		usernamePasswordToken.setUsername(this.getUsername(httpRequest));
-		usernamePasswordToken.setPassword(this.getPassword(httpRequest).toCharArray());
-		usernamePasswordToken.setRememberMe(this.isRememberMe(httpRequest));
-		usernamePasswordToken.setHost(this.getHost(httpRequest));
+		usernamePasswordToken.setUsername(this.getUsername(request));
+		usernamePasswordToken.setPassword(this.getPassword(request).toCharArray());
+		usernamePasswordToken.setRememberMe(this.isRememberMe(request));
+		usernamePasswordToken.setHost(this.getHost(request));
 		usernamePasswordToken.setGroup(this.getGroup());
 		usernamePasswordToken.setAuthenticationHandler(this.getAuthenticationHandler(request));
-		usernamePasswordToken.setAttribute(Constant.SHIROTOKEN__ATTRIBUTE_HEADERS, SpringUtils.getHeaderMap(httpRequest));
-		usernamePasswordToken.setAttribute(Constant.SHIROTOKEN__ATTRIBUTE_PARAMETERS, SpringUtils.getParameterMap(httpRequest));
 		return usernamePasswordToken;
 	}
 	
@@ -382,12 +477,9 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 	 * @return
 	 */
 	protected CasToken createCasToken(ServletRequest request, ServletResponse response) {
-		HttpServletRequest httpRequest = (HttpServletRequest) request;
 		CasToken casToken = new CasToken(this.getCasTicket(request));
 		casToken.setGroup(this.getGroup());
 		casToken.setAuthenticationHandler(this.getAuthenticationHandler(request));
-		casToken.setAttribute(Constant.SHIROTOKEN__ATTRIBUTE_HEADERS, SpringUtils.getHeaderMap(httpRequest));
-		casToken.setAttribute(Constant.SHIROTOKEN__ATTRIBUTE_PARAMETERS, SpringUtils.getParameterMap(httpRequest));
 		return casToken;
 	}
 	
@@ -490,13 +582,10 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 	 * @return
 	 */
 	protected AccessToken createAccessToken(ServletRequest request, ServletResponse response) {
-		HttpServletRequest httpRequest = (HttpServletRequest) request;
 		AccessToken accessToken = new AccessToken();
 		accessToken.setAccessToken(this.getAccessTokenValue(request));
 		accessToken.setGroup(this.getGroup());
 		accessToken.setAuthenticationHandler(this.getAuthenticationHandler(request));
-		accessToken.setAttribute(Constant.SHIROTOKEN__ATTRIBUTE_HEADERS, SpringUtils.getHeaderMap(httpRequest));
-		accessToken.setAttribute(Constant.SHIROTOKEN__ATTRIBUTE_PARAMETERS, SpringUtils.getParameterMap(httpRequest));
 		return accessToken;
 	}
 	
@@ -518,12 +607,9 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 	 * @return
 	 */
 	protected GeneralToken createGeneralToken(ServletRequest request, ServletResponse response) {
-		HttpServletRequest httpRequest = (HttpServletRequest) request;
 		GeneralToken generalToken = new GeneralToken();
 		generalToken.setGroup(this.getGroup());
 		generalToken.setAuthenticationHandler(this.getAuthenticationHandler(request));
-		generalToken.setAttribute(Constant.SHIROTOKEN__ATTRIBUTE_HEADERS, SpringUtils.getHeaderMap(httpRequest));
-		generalToken.setAttribute(Constant.SHIROTOKEN__ATTRIBUTE_PARAMETERS, SpringUtils.getParameterMap(httpRequest));
 		return generalToken;
 	}
 }

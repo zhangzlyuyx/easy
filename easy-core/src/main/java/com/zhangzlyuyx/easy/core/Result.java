@@ -2,6 +2,9 @@ package com.zhangzlyuyx.easy.core;
 
 import java.io.Serializable;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+
 /**
  * 泛型通用结果
  * @author zhangzlyuyx
@@ -83,5 +86,15 @@ public class Result<T> implements IResult<T>, Serializable {
 	@Override
 	public boolean isSuccess() {
 		return this.code != null && this.code.equalsIgnoreCase(CODE_SUCCESS);
+	}
+	
+	@Override
+	public String toString() {
+		try {
+			return JSONObject.toJSONString(this);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return super.toString();
 	}
 }

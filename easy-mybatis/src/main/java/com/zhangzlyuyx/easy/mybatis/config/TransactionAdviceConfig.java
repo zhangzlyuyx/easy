@@ -96,7 +96,7 @@ public class TransactionAdviceConfig {
 			this.requiredMethods = "add*,insert*,save*,delete*,remove*,update*,modify*,edit*,repair*,exec*,set*";
 		}
 		if(this.supportMethods == null || this.supportMethods.length() == 0) {
-			this.supportMethods = "select*,get*,query*,find*,list*,count*,is*,*";
+			this.supportMethods = "select*,get*,query*,find*,list*,count*,is*,exists*,*";
 		}
 	}
 	

@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -21,6 +22,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
@@ -28,10 +30,15 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson.JSONObject;
+import com.zhangzlyuyx.easy.core.Constant;
 import com.zhangzlyuyx.easy.core.IResult;
 import com.zhangzlyuyx.easy.core.Result;
 import com.zhangzlyuyx.easy.core.ResultCallback;
@@ -60,6 +67,7 @@ public class HttpUtils {
 	 * @return
 	 */
 	public static Result<String> httpFileUpload(String url, final Map<String, String> headers, final Map<String, String> params, final String filename, final InputStream inputStream, final boolean closeStream){
+		//result
 		final Result<String> retResult = new Result<>(true, "请求成功");
 		//执行post请求
 		Result<String> ret = httpPost(url, new ResultCallback<HttpPost>() {
@@ -194,7 +202,9 @@ public class HttpUtils {
 	 * @return
 	 */
 	public static Result<String> httpGetReturnString(String url, Map<String, String> headers, Map<String, String> params) {
+		//result
 		final Result<String> retResult = new Result<>(true, "");
+		//get
 		Result<String> retGet = httpGet(url, headers, params, new ResultCallback<HttpResponse>() {
 			@Override
 			public IResult<HttpResponse> result(HttpResponse response) {
@@ -221,22 +231,44 @@ public class HttpUtils {
 	 * @param url
 	 * @param headers headers参数
 	 * @param params params参数
+	 * @return
+	 */
+	public static Result<JSONObject> httpGetReturnJson(String url, Map<String, String> headers, Map<String, String> params) {
+		//get
+		Result<String> ret = httpGetReturnString(url, headers, params);
+		if(!ret.isSuccess()) {
+			return new Result<>(false, ret.getMsg());
+		}
+		try {
+			JSONObject json = JSONObject.parseObject(ret.getData());
+			return new Result<JSONObject>(true, "", json);
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			return new Result<>(false, e.getMessage());
+		}
+	}
+	
+	/**
+	 * http GET 请求
+	 * @param url
+	 * @param headers headers参数
+	 * @param params params参数
 	 * @param responseCallback 响应回调
 	 * @return
 	 */
 	public static Result<String> httpGet(String url, Map<String, String> headers, Map<String, String> params, ResultCallback<HttpResponse> responseCallback) {
 		try {
-			URIBuilder uriBuilder = new URIBuilder(url);
-			List<NameValuePair> parameters = new LinkedList<>();
 			//params
 			if(params != null && params.size() > 0) {
-				for(Entry<String, String> kv : params.entrySet()) {
-					parameters.add(new BasicNameValuePair(kv.getKey(), kv.getValue()));
+				Result<String> retSet = setUrlParameter(url, params);
+				if(retSet.isSuccess()) {
+					url = retSet.getData();
 				}
 			}
-			uriBuilder.setParameters(parameters);
+			//headers
 			final Map<String, String> getHeaders = headers;
-			return httpGet(uriBuilder.build().toString(), new ResultCallback<HttpGet>() {
+			//get
+			return httpGet(url, new ResultCallback<HttpGet>() {
 				@Override
 				public IResult<HttpGet> result(HttpGet httpGet) {
 					//headers
@@ -277,7 +309,9 @@ public class HttpUtils {
 	 * @return
 	 */
 	public static Result<String> httpPostReturnString(String url, Map<String, String> headers, Map<String, String> params) {
+		//result
 		final Result<String> retResult = new Result<>(true, "");
+		//post
 		Result<String> retGet = httpPost(url, headers, params, new ResultCallback<HttpResponse>() {
 			@Override
 			public IResult<HttpResponse> result(HttpResponse response) {
@@ -297,6 +331,28 @@ public class HttpUtils {
 			return retGet;
 		}
 		return retResult;
+	}
+	
+	/**
+	 * http POST 请求
+	 * @param url
+	 * @param headers headers参数
+	 * @param params params参数
+	 * @return
+	 */
+	public static Result<JSONObject> httpPostReturnJson(String url, Map<String, String> headers, Map<String, String> params) {
+		//post
+		Result<String> ret = httpPostReturnString(url, headers, params);
+		if(!ret.isSuccess()) {
+			return new Result<>(false, ret.getMsg());
+		}
+		try {
+			JSONObject json = JSONObject.parseObject(ret.getData());
+			return new Result<JSONObject>(true, "", json);
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			return new Result<>(false, e.getMessage());
+		}
 	}
 	
 	/**
@@ -373,10 +429,23 @@ public class HttpUtils {
 			}
 			//应用配置
 			httpRequest.setConfig(configBuilder.build());
+			//httpContext
+			HttpContext httpContext = new BasicHttpContext();
 			//执行请求
-			closeableHttpResponse = closeableHttpClient.execute(httpRequest);
+			closeableHttpResponse = closeableHttpClient.execute(httpRequest, httpContext);
+			//记录重定向地址
+			if(closeableHttpResponse != null && !closeableHttpResponse.containsHeader(Constant.HTTP_HEADER_Referer)) {
+				try {
+					HttpHost httpHost = (HttpHost)httpContext.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+					HttpUriRequest httpUriRequest = (HttpUriRequest)httpContext.getAttribute(ExecutionContext.HTTP_REQUEST);
+					closeableHttpResponse.setHeader(Constant.HTTP_HEADER_Referer, httpUriRequest.getURI().isAbsolute() ? httpUriRequest.getURI().toString() : (httpHost.toURI() + httpUriRequest.getURI().toString()));
+				} catch (Exception e) {
+					log.error(e.getMessage(), e);
+				}
+			}
 			//判断相应状态
 			if (closeableHttpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+				httpRequest.abort();
 				return new Result<>(false, closeableHttpResponse.getStatusLine().toString());
 			}
 			if(responseCallback != null) {
@@ -386,16 +455,16 @@ public class HttpUtils {
 				HttpEntity responeEntity = closeableHttpResponse.getEntity();
 				String data = EntityUtils.toString(responeEntity, DEFAULT_CHARSET);
 				EntityUtils.consume(responeEntity);
+				httpRequest.releaseConnection();
 				return new Result<String>(true, "请求成功", data);
 			}
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			return new Result<>(false, e.getMessage());
 		} finally {
-			if(closeableHttpClient != null) {
+			if(httpRequest != null) {
 				try {
-					closeableHttpClient.close();
-					closeableHttpClient = null;
+					httpRequest.releaseConnection();
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
@@ -408,6 +477,58 @@ public class HttpUtils {
 					ex.printStackTrace();
 				}
 			}
+			if(closeableHttpClient != null) {
+				//shutdown
+				try {
+					closeableHttpClient.getConnectionManager().shutdown();
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+				//close
+				try {
+					closeableHttpClient.close();
+					closeableHttpClient = null;
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	/**
+	 * 设置 url 参数信息
+	 * @param url
+	 * @param params
+	 * @return
+	 */
+	public static Result<String> setUrlParameter(String url, Map<String, String> params) {
+		try {
+			URIBuilder uriBuilder = new URIBuilder(url != null ? url : "");
+			for(Entry<String, String> kv : params.entrySet()) {
+				uriBuilder.addParameter(kv.getKey(), kv.getValue());
+			}
+			return new Result<String>(true, "", uriBuilder.toString());
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			return new Result<>(false, e.getMessage(), url);
+		}
+	}
+	
+	/**
+	 * 设置 url 用户信息
+	 * @param url
+	 * @param username 用户名
+	 * @param password 密码
+	 * @return
+	 */
+	public static Result<String> setUrlUserInfo(String url, String username, String password){
+		try {
+			URIBuilder uriBuilder = new URIBuilder(url != null ? url : "");
+			uriBuilder.setUserInfo(username != null ? username : "", password != null ? password : "");
+			return new Result<String>(true, "", uriBuilder.toString());
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			return new Result<>(false, e.getMessage(), url);
 		}
 	}
 }

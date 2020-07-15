@@ -30,6 +30,12 @@ public interface BaseService<T> {
 	 * @return
 	 */
 	Class<T> getEntityClass();
+	
+	/**
+	 * 获取实体映射的数据库表
+	 * @return
+	 */
+	String getEntityTable();
 
 	/**
 	 * 保存一个实体
@@ -176,6 +182,13 @@ public interface BaseService<T> {
 	 * @return
 	 */
 	int updateByExample(T entity, Example example, boolean selective);
+	
+	/**
+	 * 更新实体列表
+	 * @param list
+	 * @return
+	 */
+	int updateList(List<T> list);
 	
 	/**
 	 * 执行 update sql 语句

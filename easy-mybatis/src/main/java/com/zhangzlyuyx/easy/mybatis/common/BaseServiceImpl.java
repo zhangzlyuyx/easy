@@ -18,7 +18,9 @@ import com.zhangzlyuyx.easy.mybatis.IPageResult;
 import com.zhangzlyuyx.easy.mybatis.util.MapperUtils;
 
 import tk.mybatis.mapper.common.Mapper;
+import tk.mybatis.mapper.entity.EntityTable;
 import tk.mybatis.mapper.entity.Example;
+import tk.mybatis.mapper.mapperhelper.EntityHelper;
 
 public abstract class BaseServiceImpl<T> implements BaseService<T> {
 	
@@ -45,6 +47,13 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 			}
 		}
 		return this.entityClass;
+	}
+	
+	@Override
+	public String getEntityTable() {
+		Class<T> entityClass = this.getEntityClass();
+		EntityTable entityTable = EntityHelper.getEntityTable(entityClass);
+		return entityTable != null ? entityTable.getName() : null;
 	}
 	
 	/**
@@ -189,6 +198,19 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 	}
 	
 	@Override
+	public int updateList(List<T> list) {
+		int total = 0;
+		for(T entity : list) {
+			int count = this.updateByPrimaryKey(entity);
+			if(count <= 0) {
+				throw new RuntimeException("更新实体失败!");
+			}
+			total += count;
+		}
+		return total;
+	}
+	
+	@Override
 	public int updateBySql(String sql, Object parameter) {
 		SqlSession sqlSession = this.getSqlSession();
 		String msId = MapperUtils.getMappedStatementId(sqlSession, SqlCommandType.UPDATE, sql, (parameter != null ? parameter.getClass() : null), int.class);
@@ -227,26 +249,44 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 		
 	}
 	
+	/**
+	 * 查询后处理
+	 * @param entity
+	 * @return
+	 */
+	protected T afterSelect(T entity) {
+		return entity;
+	}
+	
+	/**
+	 * 查询后处理
+	 * @param list
+	 * @return
+	 */
+	protected List<T> afterSelect(List<T> list) {
+		return list;
+	}
+	
 	@Override
 	public T selectByPrimaryKey(Object key) {
-		return MapperUtils.selectByPrimaryKey(this.getMapper(), key);
+		return this.afterSelect(MapperUtils.selectByPrimaryKey(this.getMapper(), key));
 	}
 	
 	@Override
 	public List<T> selectByIds(String ids) {
-		return MapperUtils.selectByIds(this.getMapper(), ids);
+		return this.afterSelect(MapperUtils.selectByIds(this.getMapper(), ids));
 	}
 	
 	@Override
 	public T selectFirst(Map<String, Object> queryMap, String orderByClause, String... properties) {
 		this.beforeSelect(queryMap);
 		List<T> list = MapperUtils.selectByMap(this.getMapper(), this.getEntityClass(), queryMap, 1, 1, orderByClause, properties);
-		return list.size() > 0 ? list.get(0) : null;
+		return this.afterSelect(list.size() > 0 ? list.get(0) : null);
 	}
 	
 	@Override
 	public List<T> selectAll() {
-		return MapperUtils.selectAll(this.getMapper());
+		return this.afterSelect(MapperUtils.selectAll(this.getMapper()));
 	}
 	
 	@Override
@@ -258,7 +298,7 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 	@Override
 	public List<T> selectByEntity(T record) {
 		this.beforeSelect(record);
-		return MapperUtils.selectByEntity(this.getMapper(), record);
+		return this.afterSelect(MapperUtils.selectByEntity(this.getMapper(), record));
 	}
 	
 	@Override
@@ -270,13 +310,13 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 	@Override
 	public List<T> selectByMap(Map<String, Object> queryMap) {
 		this.beforeSelect(queryMap);
-		return MapperUtils.selectByMap(this.getMapper(), this.getEntityClass(), queryMap);
+		return this.afterSelect(MapperUtils.selectByMap(this.getMapper(), this.getEntityClass(), queryMap));
 	}
 	
 	@Override
 	public List<T> selectByMap(Map<String, Object> queryMap, Integer pageNo, Integer pageSize, String orderByClause, String... properties) {
 		this.beforeSelect(queryMap);
-		return MapperUtils.selectByMap(this.getMapper(), this.getEntityClass(), queryMap, pageNo, pageSize, orderByClause, properties);
+		return this.afterSelect(MapperUtils.selectByMap(this.getMapper(), this.getEntityClass(), queryMap, pageNo, pageSize, orderByClause, properties));
 	}
 	
 	@Override
@@ -288,19 +328,21 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 	@Override
 	public List<T> selectByCondition(List<Condition> conditions) {
 		this.beforeSelect(conditions);
-		return MapperUtils.selectByCondition(this.getMapper(), this.getEntityClass(), conditions);
+		return this.afterSelect(MapperUtils.selectByCondition(this.getMapper(), this.getEntityClass(), conditions));
 	}
 	
 	@Override
 	public List<T> selectByCondition(List<Condition> conditions, Integer pageNo, Integer pageSize, String orderByClause, String... properties) {
 		this.beforeSelect(conditions);
-		return MapperUtils.selectByCondition(this.getMapper(), this.getEntityClass(), conditions, pageNo, pageSize, orderByClause, properties);
+		return this.afterSelect(MapperUtils.selectByCondition(this.getMapper(), this.getEntityClass(), conditions, pageNo, pageSize, orderByClause, properties));
 	}
 	
 	@Override
 	public IPageResult<T> selectByPage(IPageQuery pageQuery) {
 		this.beforeSelect(pageQuery);
-		return MapperUtils.selectByPage(this.getMapper(), this.getEntityClass(), pageQuery);
+		IPageResult<T> pageResult = MapperUtils.selectByPage(this.getMapper(), this.getEntityClass(), pageQuery);
+		pageResult.setRows(this.afterSelect(pageResult.getRows()));
+		return pageResult;
 	}
 	
 	@Override
@@ -310,19 +352,20 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 	
 	@Override
 	public List<T> selectByExample(Example example) {
-		return MapperUtils.selectByExample(this.getMapper(), example);
+		return this.afterSelect(MapperUtils.selectByExample(this.getMapper(), example));
 	}
 	
 	@Override
 	public List<T> selectByExample(Example example, Integer pageNo, Integer pageSize) {
-		return MapperUtils.selectByExample(this.getMapper(), example, pageNo, pageSize);
+		return this.afterSelect(MapperUtils.selectByExample(this.getMapper(), example, pageNo, pageSize));
 	}
 	
 	@Override
 	public List<T> selectListBySql(String sql, Object parameter) {
 		SqlSession sqlSession = this.getSqlSession();
 		String msId = MapperUtils.getMappedStatementId(sqlSession, SqlCommandType.SELECT, sql, (parameter != null ? parameter.getClass() : null), this.getEntityClass());
-		return sqlSession.selectList(msId, parameter);
+		List<T> list = sqlSession.selectList(msId, parameter);	
+		return this.afterSelect(list);
 	}
 	
 	@Override

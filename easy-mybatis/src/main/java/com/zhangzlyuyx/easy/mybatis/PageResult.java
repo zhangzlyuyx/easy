@@ -67,6 +67,7 @@ public class PageResult<T> implements IPageResult<T> {
 		return this.total;
 	}
 
+	@Override
 	public void setTotal(Long total) {
 		this.total = total;
 	}
@@ -81,6 +82,7 @@ public class PageResult<T> implements IPageResult<T> {
 		return this.rows;
 	}
 
+	@Override
 	public void setRows(List<T> rows) {
 		this.rows = rows;
 	}

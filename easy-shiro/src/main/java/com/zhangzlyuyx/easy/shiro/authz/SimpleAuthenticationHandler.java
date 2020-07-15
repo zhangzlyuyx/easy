@@ -65,12 +65,15 @@ public abstract class SimpleAuthenticationHandler implements AuthenticationHandl
 			ServletRequest request, ServletResponse response) {
 		
 		if(token instanceof ShiroToken) {
+			HttpServletRequest httpRequest = (HttpServletRequest) request;
 			ShiroToken shiroToken = (ShiroToken)token;
 			shiroToken.setGroup(authenticationFilter.getGroup());
 			shiroToken.setAuthenticationHandler(authenticationFilter.getAuthenticationHandler(request));
-			shiroToken.getAttributes().put(Constant.SHIROTOKEN__ATTRIBUTE_USERAGENT, SpringUtils.getUserAgent((HttpServletRequest)request));
-			shiroToken.getAttributes().put(Constant.SHIROTOKEN__ATTRIBUTE_CLIENTIP, SpringUtils.getClientIP((HttpServletRequest)request));
+			shiroToken.getAttributes().put(Constant.SHIROTOKEN__ATTRIBUTE_USERAGENT, SpringUtils.getUserAgent(httpRequest));
+			shiroToken.getAttributes().put(Constant.SHIROTOKEN__ATTRIBUTE_CLIENTIP, SpringUtils.getClientIP(httpRequest));
 			shiroToken.getAttributes().put(Constant.SHIROTOKEN__ATTRIBUTE_URL, SpringUtils.getRequestUrl(request));
+			shiroToken.setAttribute(Constant.SHIROTOKEN__ATTRIBUTE_HEADERS, SpringUtils.getHeaderMap(httpRequest));
+			shiroToken.setAttribute(Constant.SHIROTOKEN__ATTRIBUTE_PARAMETERS, SpringUtils.getParameterMap(httpRequest));
 		}
 		
 		return token;
