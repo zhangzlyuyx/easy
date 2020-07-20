@@ -18,8 +18,8 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import com.alibaba.fastjson.JSONObject;
+import com.zhangzlyuyx.easy.core.Constant;
 import com.zhangzlyuyx.easy.core.util.StringUtils;
-import com.zhangzlyuyx.easy.spring.Constant;
 
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.extra.servlet.ServletUtil;
@@ -88,7 +88,7 @@ public class SpringUtils {
 	 * @return
 	 */
 	public static String getUserAgent(HttpServletRequest request) {
-		return getHeader(request, Constant.HEADER_USER_AGENT, true);
+		return getHeader(request, Constant.HTTP_HEADER_User_Agent, true);
 	}
 	
 	/******************** begin cookie ********************/
@@ -263,8 +263,14 @@ public class SpringUtils {
 		str.append(request.getScheme());
 		str.append("://");
 		str.append(request.getServerName());
-		str.append(":");
-		str.append(request.getServerPort());
+		if(request.getScheme().equalsIgnoreCase("http") && request.getServerPort() == 80) {
+			str.append("");
+		}else if(request.getScheme().equalsIgnoreCase("https") && request.getServerPort() == 443) {
+			str.append("");
+		}else {
+			str.append(":");
+			str.append(request.getServerPort());
+		}
 		str.append(request.getServletContext().getContextPath());
 		return str.toString(); 
 	}
@@ -286,19 +292,45 @@ public class SpringUtils {
 	}
 	
 	/**
-	 * 返回json成功数据给客户端
-	 * @param response
+	 * 输出成功数据
 	 * @param msg
 	 * @param data
+	 * @return
 	 */
-	public static void writeSuccess(HttpServletResponse response, String msg, Object data) {
+	public static JSONObject renderSuccess(String msg, Object data) {
 		JSONObject json = new JSONObject();
 		json.put("code", "success");
 		json.put("msg", msg);
 		if(data != null) {
 			json.put("data", data);
 		}
-		writeJson(response, json.toJSONString());
+		return json;
+	}
+	
+	/**
+	 * 返回json成功数据给客户端
+	 * @param response
+	 * @param msg
+	 * @param data
+	 */
+	public static void writeSuccess(HttpServletResponse response, String msg, Object data) {
+		writeJson(response, renderSuccess(msg, data).toJSONString());
+	}
+	
+	/**
+	 * 输出失败数据
+	 * @param msg
+	 * @param data
+	 * @return
+	 */
+	public static JSONObject renderFail(String msg, Object data) {
+		JSONObject json = new JSONObject();
+		json.put("code", "error");
+		json.put("msg", msg);
+		if(data != null) {
+			json.put("data", data);
+		}
+		return json;
 	}
 	
 	/**
@@ -307,13 +339,23 @@ public class SpringUtils {
 	 * @param msg
 	 */
 	public static void writeFail(HttpServletResponse response, String msg, Object data) {
+		writeJson(response, renderFail(msg, data).toJSONString());
+	}
+	
+	/**
+	 * 输出拒绝数据
+	 * @param msg
+	 * @param data
+	 * @return
+	 */
+	public static JSONObject renderDenied(String msg, Object data) {
 		JSONObject json = new JSONObject();
-		json.put("code", "error");
+		json.put("code", "denied");
 		json.put("msg", msg);
 		if(data != null) {
 			json.put("data", data);
 		}
-		writeJson(response, json.toJSONString());
+		return json;
 	}
 	
 	/**
@@ -322,13 +364,7 @@ public class SpringUtils {
 	 * @param msg
 	 */
 	public static void writeDenied(HttpServletResponse response, String msg, Object data) {
-		JSONObject json = new JSONObject();
-		json.put("code", "denied");
-		json.put("msg", msg);
-		if(data != null) {
-			json.put("data", data);
-		}
-		writeJson(response, json.toJSONString());
+		writeJson(response, renderDenied(msg, data).toJSONString());
 	}
 	
 	/**
@@ -337,7 +373,7 @@ public class SpringUtils {
 	 * @param json
 	 */
 	public static void writeJson(HttpServletResponse response, String json) {
-		write(response, json, Constant.CONTENTTYPE_JSON);
+		write(response, json, Constant.HTTP_CONTENTTYPE_JSON);
 	}
 	
 	/**
@@ -347,7 +383,7 @@ public class SpringUtils {
 	 * @param contentType 返回的类型
 	 */
 	public static void write(HttpServletResponse response, String text, String contentType) {
-		response.setCharacterEncoding(Constant.CHARACTERENCODING_UTF8);
+		response.setCharacterEncoding(Constant.DEFAULT_CHARSET);
 		ServletUtil.write(response, text, contentType);
 	}
 	

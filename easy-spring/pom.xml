@@ -15,6 +15,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<freemarker.version>2.3.28</freemarker.version>
 	</properties>
 	<dependencies>
 		<!-- easy-core -->
@@ -36,6 +37,13 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<scope>provided</scope>
+		</dependency>
+		
+		<!-- freemarker -->
+		<dependency>
+		    <groupId>org.freemarker</groupId>
+		    <artifactId>freemarker</artifactId>
+		    <version>${freemarker.version}</version>
 		</dependency>
 		
 		<!-- junit -->
