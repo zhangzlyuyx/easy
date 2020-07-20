@@ -42,6 +42,8 @@
 		<servlet.version>3.1.0</servlet.version>
 		<spring.version>4.3.24.RELEASE</spring.version>
 		<slf4j-api.version>1.7.30</slf4j-api.version>
+		<httpcomponents.version>4.5.10</httpcomponents.version>
+		<t-io.version>3.6.1.v20200512-RELEASE</t-io.version>
 	</properties>
 
 	<dependencyManagement>
@@ -90,6 +92,13 @@
 				<version>${junit.version}</version>
 				<scope>test</scope>
 			</dependency>
+			
+			<!-- t-io -->
+			<dependency>
+			    <groupId>org.t-io</groupId>
+			    <artifactId>tio-core</artifactId>
+			    <version>${t-io.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -99,6 +108,7 @@
 		<module>easy-shiro</module>
 		<module>easy-spring</module>
     <module>easy-storage</module>
+    <module>easy-media</module>
   </modules>
 
 	<distributionManagement>
