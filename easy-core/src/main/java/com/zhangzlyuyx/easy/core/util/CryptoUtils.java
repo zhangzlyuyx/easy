@@ -5,6 +5,8 @@ import java.io.InputStream;
 
 import cn.hutool.core.codec.Base64;
 import cn.hutool.crypto.SecureUtil;
+import cn.hutool.crypto.asymmetric.KeyType;
+import cn.hutool.crypto.asymmetric.RSA;
 
 /**
  * 加密工具类
@@ -116,4 +118,52 @@ public class CryptoUtils {
 	}
 	
 	/******************** end base64 ********************/
+	
+	/******************** begin rsa ********************/
+	
+	/**
+	 * RSA 公钥加密 -> 私钥解密
+	 * @param data
+	 * @param publicKeyBase64
+	 * @return
+	 */
+	public static byte[] encodeRsaPublicKey(byte[] data, String publicKeyBase64) {
+		RSA rsa = new RSA(null, publicKeyBase64);
+		return rsa.encrypt(data, KeyType.PublicKey);
+	}
+	
+	/**
+	 * RSA  私钥加密 -> 公钥解密
+	 * @param data
+	 * @param privateKeyBase64
+	 * @return
+	 */
+	public static byte[] encodeRsaPrivateKey(byte[] data, String privateKeyBase64) {
+		RSA rsa = new RSA(privateKeyBase64, null);
+		return rsa.encrypt(data, KeyType.PrivateKey);
+	}
+	
+	/**
+	 * RSA 私钥解密  <- 公钥加密
+	 * @param data
+	 * @param privateKeyBase64
+	 * @return
+	 */
+	public static byte[] decodeRsaPrivateKey(byte[] data, String privateKeyBase64) {
+		RSA rsa = new RSA(privateKeyBase64, null);
+		return rsa.decrypt(data, KeyType.PrivateKey);
+	}
+	
+	/**
+	 * RSA 公钥解密  <- 私钥加密
+	 * @param data
+	 * @param publicKeyBase64
+	 * @return
+	 */
+	public static byte[] decodeRsaPublicKey(byte[] data, String publicKeyBase64) {
+		RSA rsa = new RSA(null, publicKeyBase64);
+		return rsa.decrypt(data, KeyType.PublicKey);
+	}
+	
+	/******************** end rsa ********************/
 }

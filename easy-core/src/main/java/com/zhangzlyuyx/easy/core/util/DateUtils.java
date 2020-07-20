@@ -19,6 +19,25 @@ public class DateUtils {
 	public static Date getDate() {
 		return new Date();
 	}
+	
+	/**
+	 * 获取时间
+	 * @param date 
+	 * @param hour 小时
+	 * @param minute 分钟
+	 * @param second 秒
+	 * @param millisecond 毫秒
+	 * @return
+	 */
+	public static Date getDate(Date date, int hour, int minute, int second, int millisecond){
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.HOUR_OF_DAY, hour);
+		calendar.set(Calendar.MINUTE, minute);
+		calendar.set(Calendar.SECOND, second);
+		calendar.set(Calendar.MILLISECOND, millisecond);
+		return calendar.getTime();
+	}
 
 	/**
 	 * 根据特定格式格式化日期

@@ -64,4 +64,23 @@ public class StringUtils {
 	public static String replace(CharSequence str, CharSequence searchStr, CharSequence replacement) {
 		return StrUtil.replace(str, searchStr, replacement);
 	}
+	
+	/**
+	 * 格式化字符串
+	 * @param format
+	 * @param args
+	 * @return
+	 */
+	public static String format(String format, Object... args){
+		if(format == null){
+			return format;
+		}
+		if(format.contains("{}")){
+			return StrUtil.format(format, args);
+		}else if(format.contains("{0}")){
+			return StrUtil.indexedFormat(format, args);
+		}else{
+			return String.format(format, args);
+		}
+	}
 }
