@@ -1,7 +1,10 @@
 package com.zhangzlyuyx.easy.shiro.filter;
 
+import java.util.Map;
+
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -103,6 +106,8 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 	 */
 	@Override
 	protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
+		//获取 token
+		ShiroToken shiroToken = ShiroUtils.getShiroToken();
 		//直接允许登录请求
 		if(this.isLoginRequest(request, response)) {
 			return true;
@@ -118,18 +123,17 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 		//直接允许注销请求
 		if(this.isLogoutRequest(request, response)) {
 			ShiroUtils.logout();
-			return true;
+			return this.onLogout(shiroToken, request, response);
 		}
 		//基本认证判断
 		boolean accessAllowed = ShiroUtils.isAccessAllowed(this, request, response, mappedValue);
 		if(!accessAllowed) {
 			return false;
 		}
-		ShiroToken shiroToken = ShiroUtils.getShiroToken();
 		//accessToken一致性校验
-		if(shiroToken instanceof AccessToken && !this.isAccessAllowed((AccessToken)shiroToken, request)) {
+		if(shiroToken != null && shiroToken instanceof AccessToken && !this.isAccessAllowed((AccessToken)shiroToken, request)) {
 			ShiroUtils.logout();
-			return false;
+			return this.onLogout(shiroToken, request, response);
 		}
 		return true;
 	}
@@ -221,10 +225,24 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
             log.debug( "onLoginSuccess: {}", JSONObject.toJSONString(token));
         }
 		
+		//自动添加 cookie
+		if(this.isAllowAccessTokenCookie() && this.getAccessTokenCookieExpires() > 0) {
+			AccessToken accessToken = ShiroUtils.getAccessToken();
+			if(accessToken != null) {
+				Map<String, Cookie> cookieMap = SpringUtils.getCookies((HttpServletRequest)request);
+				for(String accessTokenParam : this.getAccessTokenParams()) {
+					if(!cookieMap.containsKey(accessTokenParam.toLowerCase())) {
+						SpringUtils.addCookie((HttpServletResponse)response, accessTokenParam, accessToken.getAccessToken(), this.getAccessTokenCookieExpires(), "/", request.getServerName());
+					}
+				}
+			}
+		}
+		
 		//get请求处理
 		if(SpringUtils.isGetMethod((HttpServletRequest)request)) {
 			
-			if(!StringUtils.isEmpty(this.getSuccessUrl()) && !this.isSuccessRequest(request, response)) {
+			//if(!StringUtils.isEmpty(this.getSuccessUrl()) && !this.isSuccessRequest(request, response)) {
+			if(!StringUtils.isEmpty(this.getSuccessUrl()) && this.isLoginRequest(request, response) && !this.isSuccessRequest(request, response)) {
 				//重定向到成功url
 				this.issueSuccessRedirect(request, response);
 				//返回false, 表示请求已处理
@@ -277,6 +295,32 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 		//输出拒绝信息
 		SpringUtils.writeDenied((HttpServletResponse)response, e.getMessage(), null);
 		//返回false, 表示请求已处理
+		return false;
+	}
+	
+	/**
+	 * 用户注销
+	 * @param token
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	public boolean onLogout(AuthenticationToken token, ServletRequest request, ServletResponse response) {
+		
+		//自动删除 cookie
+		if(this.isAllowAccessTokenCookie()) {
+			AccessToken accessToken = ShiroUtils.getAccessToken();
+			if (accessToken != null) {
+				for (String accessTokenParam : this.getAccessTokenParams()) {
+					SpringUtils.addCookie((HttpServletResponse)response, accessTokenParam, null, 0, "/", request.getServerName());
+				}
+			}
+		}
+		
+		//判断是否为注销页
+		if(this.isLogoutRequest(request, response)) {
+			return true;
+		}
 		return false;
 	}
 	
@@ -552,6 +596,19 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 	
 	public void setAllowAccessTokenCookie(boolean allowAccessTokenCookie) {
 		this.allowAccessTokenCookie = allowAccessTokenCookie;
+	}
+	
+	/**
+	 * accessToken cookie 过期时间(秒)
+	 */
+	private int accessTokenCookieExpires = 60 * 60 * 24 * 7;
+	
+	public int getAccessTokenCookieExpires() {
+		return this.accessTokenCookieExpires;
+	}
+	
+	public void setAccessTokenCookieExpires(int accessTokenCookieExpires) {
+		this.accessTokenCookieExpires = accessTokenCookieExpires;
 	}
 	
 	/**

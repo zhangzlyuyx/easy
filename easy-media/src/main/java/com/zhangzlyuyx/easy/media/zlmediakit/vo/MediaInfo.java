@@ -10,6 +10,16 @@ import com.alibaba.fastjson.annotation.JSONField;
  *
  */
 public class MediaInfo {
+	
+	private Boolean online;
+	
+	public Boolean isOnline() {
+		return this.online;
+	}
+
+	public void setOnline(Boolean online) {
+		this.online = online;
+	}
 
 	/**
 	 * 协议

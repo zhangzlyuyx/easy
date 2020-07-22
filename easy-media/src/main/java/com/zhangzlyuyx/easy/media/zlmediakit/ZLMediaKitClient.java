@@ -208,6 +208,17 @@ public class ZLMediaKitClient {
 	 * @return
 	 */
 	public Result<Integer> closeStreams(String schema, MediaStream mediaStream){
+		return this.closeStreams(schema, mediaStream, null);
+	}
+	
+	/**
+	 * 关闭流(目前所有类型的流都支持关闭)
+	 * @param schema 协议，例如 rtsp或rtmp
+	 * @param mediaStream 流信息
+	 * @param force 是否强制关闭(有人在观看是否还关闭)
+	 * @return
+	 */
+	public Result<Integer> closeStreams(String schema, MediaStream mediaStream, Boolean force){
 		Map<String, String> params = new HashMap<>();
 		if(schema != null) {
 			params.put("schema", schema);
@@ -220,6 +231,9 @@ public class ZLMediaKitClient {
 		}
 		if(mediaStream.getStream() != null) {
 			params.put("stream", mediaStream.getStream());
+		}
+		if(force != null) {
+			params.put("force", force ? "1": "0");
 		}
 		//请求
 		Result<JSONObject> ret = this.request(api_close_streams, params);
@@ -317,6 +331,7 @@ public class ZLMediaKitClient {
 		JSONArray array = ret.getData().getJSONArray("data");
 		for(int i = 0; i < array.size(); i++) {
 			MediaInfo mediaInfo = array.getObject(i, MediaInfo.class);
+			mediaInfo.setOnline(true);
 			//流key
 			String streamKey = mediaInfo.getStreamKey().toString();
 			//判断是否需要合并记录

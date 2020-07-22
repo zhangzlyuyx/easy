@@ -7,12 +7,14 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -96,11 +98,21 @@ public class SpringUtils {
 	/**
 	 * 获取 cookie
 	 * @param request
-	 * @param name cookie 名称
+	 * @param name cookie 名称(忽略大小写)
 	 * @return
 	 */
 	public static Cookie getCookie(HttpServletRequest request, String name) {
-		return ServletUtil.getCookie(request, name);
+		//return ServletUtil.getCookie(request, name);
+		Map<String, Cookie> cookieMap = ServletUtil.readCookieMap(request);
+		if(cookieMap == null || cookieMap.size() == 0) {
+			return null;
+		}
+		for(Entry<String, Cookie> kv : cookieMap.entrySet()) {
+			if(kv.getKey().equalsIgnoreCase(name)) {
+				return kv.getValue();
+			}
+		}
+		return null;
 	}
 	
 	/**
@@ -132,6 +144,17 @@ public class SpringUtils {
 	 */
 	public static void addCookie(HttpServletResponse response, Cookie cookie) {
 		ServletUtil.addCookie(response, cookie);
+	}
+	
+	/**
+	 * 清除给客户端的Cookie
+	 * @param response
+	 * @param name cookie名称
+	 * @param path 路径
+	 * @param domain 域名
+	 */
+	public static void clearCookie(HttpServletResponse response, String name, String path, String domain) {
+		ServletUtil.addCookie(response, name, null, 0, path, domain);
 	}
 	
 	/******************** end cookie ********************/

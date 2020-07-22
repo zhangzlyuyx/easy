@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.zhangzlyuyx</groupId>
 		<artifactId>easy-parent</artifactId>
-		<version>0.0.7</version>
+		<version>0.0.8</version>
 	</parent>
 	<artifactId>easy-core</artifactId>
 	<name>easy-core</name>
@@ -17,6 +17,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<httpcomponents.version>4.5.10</httpcomponents.version>
 		<jedis.version>2.9.3</jedis.version>
+		<jsoup.version>1.13.1</jsoup.version>
 	</properties>
 	<dependencies>
 
@@ -64,6 +65,13 @@
 			<groupId>redis.clients</groupId>
 			<artifactId>jedis</artifactId>
 			<version>${jedis.version}</version>
+		</dependency>
+		
+		<!-- jsoup -->
+		<dependency>
+		    <groupId>org.jsoup</groupId>
+		    <artifactId>jsoup</artifactId>
+		    <version>${jsoup.version}</version>
 		</dependency>
 
 		<!-- junit -->

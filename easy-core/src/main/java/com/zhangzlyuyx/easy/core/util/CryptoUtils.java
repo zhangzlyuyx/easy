@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.InputStream;
 
 import cn.hutool.core.codec.Base64;
+import cn.hutool.core.text.UnicodeUtil;
+import cn.hutool.core.util.HexUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.crypto.asymmetric.KeyType;
 import cn.hutool.crypto.asymmetric.RSA;
@@ -119,6 +121,52 @@ public class CryptoUtils {
 	
 	/******************** end base64 ********************/
 	
+	/******************** begin hex ********************/
+	
+	/**
+	 * 将字节数组转换为十六进制字符数组
+	 * @param data
+	 * @param toLowerCase
+	 * @return
+	 */
+	public static char[] encodeHex(byte[] data, boolean toLowerCase) {
+		return HexUtil.encodeHex(data, toLowerCase);
+	}
+	
+	/**
+	 * 将十六进制字符数组转换为字节数
+	 * @param hexData
+	 * @return
+	 */
+	public static byte[] decodeHex(char[] hexData) {
+		return HexUtil.decodeHex(hexData);
+	}
+	
+	/******************** end hex ********************/
+	
+	/******************** begin unicode ********************/
+	
+	/**
+	 * 字符串编码为Unicode形式
+	 * @param str 被编码的字符串
+	 * @param isSkipAscii 是否跳过ASCII字符（只跳过可见字符）
+	 * @return
+	 */
+	public static String encodeUnicode(String str, boolean isSkipAscii) {
+		return UnicodeUtil.toUnicode(str, isSkipAscii);
+	}
+	
+	/**
+	 * Unicode字符串转为普通字符串
+	 * @param unicode Unicode字符串,如: \\uXXXX
+	 * @return
+	 */
+	public static String decodeUnicode(String unicode) {
+		return UnicodeUtil.toString(unicode);
+	}
+	
+	/******************** end unicode ********************/
+	
 	/******************** begin rsa ********************/
 	
 	/**
@@ -166,4 +214,5 @@ public class CryptoUtils {
 	}
 	
 	/******************** end rsa ********************/
+	
 }

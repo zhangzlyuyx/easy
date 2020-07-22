@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -100,7 +101,10 @@ public class HttpUtils {
 			
 			@Override
 			public IResult<HttpResponse> result(HttpResponse response) {
-				
+				//status
+				if(response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+					return new Result<>(false, response.getStatusLine().toString());
+				}
 				try {
 					HttpEntity httpEntity = response.getEntity();
 					String body = EntityUtils.toString(httpEntity, DEFAULT_CHARSET);
@@ -145,6 +149,10 @@ public class HttpUtils {
 			
 			@Override
 			public IResult<HttpResponse> result(HttpResponse response) {
+				//status
+				if(response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+					return new Result<>(false, response.getStatusLine().toString());
+				}
 				InputStream inputStream = null;
 				BufferedOutputStream bufferedOutputStream = null;
 				try {
@@ -208,6 +216,10 @@ public class HttpUtils {
 		Result<String> retGet = httpGet(url, headers, params, new ResultCallback<HttpResponse>() {
 			@Override
 			public IResult<HttpResponse> result(HttpResponse response) {
+				//status
+				if(response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+					return new Result<>(false, response.getStatusLine().toString());
+				}
 				try {
 					HttpEntity responeEntity = response.getEntity();
 					String data = EntityUtils.toString(responeEntity, DEFAULT_CHARSET);
@@ -315,6 +327,10 @@ public class HttpUtils {
 		Result<String> retGet = httpPost(url, headers, params, new ResultCallback<HttpResponse>() {
 			@Override
 			public IResult<HttpResponse> result(HttpResponse response) {
+				//status
+				if(response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+					return new Result<>(false, response.getStatusLine().toString());
+				}
 				try {
 					HttpEntity responeEntity = response.getEntity();
 					String data = EntityUtils.toString(responeEntity, DEFAULT_CHARSET);
@@ -444,14 +460,21 @@ public class HttpUtils {
 				}
 			}
 			//判断相应状态
-			if (closeableHttpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-				httpRequest.abort();
-				return new Result<>(false, closeableHttpResponse.getStatusLine().toString());
-			}
+			boolean statusOK = closeableHttpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
 			if(responseCallback != null) {
+				//引发回调
 				responseCallback.result(closeableHttpResponse);
-				return new Result<String>(true, "请求成功");
+				if(!statusOK) {
+					httpRequest.abort();
+					return new Result<>(false, closeableHttpResponse.getStatusLine().toString());
+				} else {
+					return new Result<String>(true, "请求成功");
+				}
 			} else {
+				if(!statusOK) {
+					httpRequest.abort();
+					return new Result<>(false, closeableHttpResponse.getStatusLine().toString());
+				}
 				HttpEntity responeEntity = closeableHttpResponse.getEntity();
 				String data = EntityUtils.toString(responeEntity, DEFAULT_CHARSET);
 				EntityUtils.consume(responeEntity);
@@ -530,5 +553,40 @@ public class HttpUtils {
 			log.error(e.getMessage(), e);
 			return new Result<>(false, e.getMessage(), url);
 		}
+	}
+	
+	/**
+	 * 获取 http 响应  header信息
+	 * @param response
+	 * @param headerName
+	 * @return
+	 */
+	public static Header getHttpResponseHeader(HttpResponse response, String headerName) {
+		if(response == null) {
+			return null;
+		}
+		return response.getFirstHeader(headerName);
+	}
+	
+	/**
+	 * 获取 http 响应  header值
+	 * @param response
+	 * @param headerName
+	 * @return
+	 */
+	public static String getHttpResponseHeaderValue(HttpResponse response, String headerName) {
+		Header header = getHttpResponseHeader(response, headerName);
+		return header != null ? header.getValue() : null;
+	}
+	
+	/**
+	 * 获取 http 响应 header 元素列表
+	 * @param response
+	 * @param headerName
+	 * @return
+	 */
+	public static HeaderElement[] getHttpResponseHeaderElements(HttpResponse response, String headerName) {
+		Header header = getHttpResponseHeader(response, headerName);
+		return header != null ? header.getElements(): null;
 	}
 }
