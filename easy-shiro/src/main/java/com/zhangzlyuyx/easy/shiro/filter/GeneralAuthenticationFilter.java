@@ -1,5 +1,6 @@
 package com.zhangzlyuyx.easy.shiro.filter;
 
+import java.io.IOException;
 import java.util.Map;
 
 import javax.servlet.ServletRequest;
@@ -24,6 +25,7 @@ import com.zhangzlyuyx.easy.shiro.ShiroToken;
 import com.zhangzlyuyx.easy.shiro.authc.AccessToken;
 import com.zhangzlyuyx.easy.shiro.authc.CasToken;
 import com.zhangzlyuyx.easy.shiro.authc.GeneralToken;
+import com.zhangzlyuyx.easy.shiro.authc.OAuthToken;
 import com.zhangzlyuyx.easy.shiro.authc.UsernamePasswordToken;
 import com.zhangzlyuyx.easy.shiro.authz.AuthenticationHandler;
 import com.zhangzlyuyx.easy.shiro.util.ShiroUtils;
@@ -106,34 +108,62 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 	 */
 	@Override
 	protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
+		//subject
+		Subject subject = this.getSubject(request, response);
+		//已认证状态直接允许通过
+		if(subject.isAuthenticated() || subject.isRemembered()) {
+			return true;
+		}
+		//白名单请求，且非登录请求直接允许通过
+		if(this.isPermissive(mappedValue) && !this.isLoginRequest(request, response)) {
+			return true;
+		}
 		//获取 token
-		ShiroToken shiroToken = ShiroUtils.getShiroToken();
-		//直接允许登录请求
-		if(this.isLoginRequest(request, response)) {
-			return true;
+		ShiroToken token = ShiroUtils.getShiroToken();
+		if(token == null) {
+			ShiroUtils.logout();
+			return this.onLogout(token, request, response);
 		}
-		//直接允许白名单
-		if(this.isPermissive(mappedValue)) {
-			return true;
-		}
-		//直接允许失败请求
-		if(this.isFailureRequest(request, response)) {
-			return true;
-		}
-		//直接允许注销请求
+		//注销请求处理
 		if(this.isLogoutRequest(request, response)) {
 			ShiroUtils.logout();
-			return this.onLogout(shiroToken, request, response);
+			return this.onLogout(token, request, response);
 		}
-		//基本认证判断
-		boolean accessAllowed = ShiroUtils.isAccessAllowed(this, request, response, mappedValue);
-		if(!accessAllowed) {
+		//token group
+		if(!token.getGroup().equals(this.getGroup())) {
+			ShiroUtils.logout();
+			return this.onLogout(token, request, response);
+		}
+		//isAccessAllowed - token
+		if(!this.isAccessAllowed(request, response, mappedValue, token)) {
 			return false;
 		}
-		//accessToken一致性校验
-		if(shiroToken != null && shiroToken instanceof AccessToken && !this.isAccessAllowed((AccessToken)shiroToken, request)) {
+		return true;
+	}
+	
+	/**
+	 * 判断操作权限
+	 * @param request
+	 * @param response
+	 * @param mappedValue
+	 * @param shiroToken
+	 * @return
+	 */
+	protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue, ShiroToken shiroToken) {
+		//shiroToken
+		if(shiroToken == null) {
 			ShiroUtils.logout();
 			return this.onLogout(shiroToken, request, response);
+		}
+		//AccessToken
+		if(shiroToken instanceof AccessToken) {
+			AccessToken accessToken = (AccessToken)shiroToken;
+			//读取当前求的 accessToken 值，匹配一致性
+			String accessTokenValue = this.getAccessTokenValue(request);
+			if(!accessToken.getAccessToken().equals(accessTokenValue)) {
+				ShiroUtils.logout();
+				return this.onLogout(shiroToken, request, response);
+			}
 		}
 		return true;
 	}
@@ -154,6 +184,11 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 			
 			//登录页get直接显示
 			if(this.isLoginRequest(httpRequest, response)) {
+				return true;
+			}
+			
+			//失败请求直接允许通过
+			if(this.isFailureRequest(request, response)) {
 				return true;
 			}
 			
@@ -182,6 +217,11 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 		
 		//执行登录请求
 		return this.executeLogin(request, response);
+	}
+	
+	@Override
+	protected void redirectToLogin(ServletRequest request, ServletResponse response) throws IOException {
+		super.redirectToLogin(request, response);
 	}
 	
 	/**
@@ -647,14 +687,22 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 	}
 	
 	/**
-	 * 是否允许 accessToken
-	 * @param accessToken
+	 * 是否为 OAuthToken
 	 * @param request
+	 * @param response
 	 * @return
 	 */
-	protected boolean isAccessAllowed(AccessToken accessToken, ServletRequest request) {
-		String accessTokenValue = this.getAccessTokenValue(request);
-		return accessTokenValue != null && accessTokenValue.equals(accessToken.getAccessToken());
+	protected boolean isOAuthToken(ServletRequest request, ServletResponse response) {
+		String userAgent = SpringUtils.getUserAgent((HttpServletRequest)request);
+		if (userAgent.toLowerCase().indexOf("micromessenger") != -1) {
+			
+		}
+		return false;
+	}
+	
+	protected OAuthToken createOAuthToken(ServletRequest request, ServletResponse response) {
+		
+		return null;
 	}
 	
 	/**
@@ -669,4 +717,5 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 		generalToken.setAuthenticationHandler(this.getAuthenticationHandler(request));
 		return generalToken;
 	}
+	
 }

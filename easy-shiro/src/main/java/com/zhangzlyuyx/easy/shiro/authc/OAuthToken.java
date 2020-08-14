@@ -3,10 +3,8 @@ package com.zhangzlyuyx.easy.shiro.authc;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.AuthenticationToken;
 
 import com.zhangzlyuyx.easy.core.util.ConvertUtils;
 import com.zhangzlyuyx.easy.shiro.Constant;
@@ -15,16 +13,16 @@ import com.zhangzlyuyx.easy.shiro.ShiroToken;
 import com.zhangzlyuyx.easy.shiro.authz.AuthenticationHandler;
 
 /**
- * userpassword token
+ * OAuth 认证 token
  * @author zhangzlyuyx
  *
  */
-public class UsernamePasswordToken extends org.apache.shiro.authc.UsernamePasswordToken implements ShiroToken {
+public class OAuthToken implements AuthenticationToken, ShiroToken {
 
-	private static final long serialVersionUID = 6289263822802522812L;
-	
+	private static final long serialVersionUID = 6300362733183522751L;
+
 	/**
-	 * 分组
+	 * token 分组
 	 */
 	private String group = Constant.SHIROTOKEN_DEFAULT_GROUP;
 	
@@ -43,34 +41,21 @@ public class UsernamePasswordToken extends org.apache.shiro.authc.UsernamePasswo
 	 */
 	private String realmName;
 	
-	public UsernamePasswordToken() {
-		
-	}
-
 	/**
-	 * 解析 UsernamePasswordToken
-	 * @param usernamePasswordToken usernamePasswordToken
-	 * @return
+	 * 认证用户标识
 	 */
-	public static UsernamePasswordToken parse(org.apache.shiro.authc.UsernamePasswordToken usernamePasswordToken) {
-		UsernamePasswordToken token = new UsernamePasswordToken();
-		token.setHost(usernamePasswordToken.getHost());
-		token.setUsername(usernamePasswordToken.getUsername());
-		token.setPassword(usernamePasswordToken.getPassword());
-		token.setRememberMe(usernamePasswordToken.isRememberMe());
-		return token;
-	}
+	private String openId;
 	
 	@Override
 	public String getGroup() {
 		return this.group;
 	}
-	
+
 	@Override
 	public void setGroup(String group) {
 		this.group = group;
 	}
-	
+
 	@Override
 	public Map<String, Object> getAttributes() {
 		if(this.attributes == null) {
@@ -83,7 +68,7 @@ public class UsernamePasswordToken extends org.apache.shiro.authc.UsernamePasswo
 	public void setAttributes(Map<String, Object> attributes) {
 		this.attributes = attributes;
 	}
-	
+
 	@Override
 	public Object getAttribute(String key) {
 		if(!this.getAttributes().containsKey(key)) {
@@ -91,7 +76,7 @@ public class UsernamePasswordToken extends org.apache.shiro.authc.UsernamePasswo
 		}
 		return this.getAttributes().get(key);
 	}
-	
+
 	@Override
 	public <T> T getAttribute(String key, Class<T> clazz) {
 		Object value = this.getAttribute(key);
@@ -103,45 +88,54 @@ public class UsernamePasswordToken extends org.apache.shiro.authc.UsernamePasswo
 		}
 		return ConvertUtils.convert(clazz, value);
 	}
-	
+
 	@Override
 	public void setAttribute(String key, Object value) {
 		this.getAttributes().put(key, value);
 	}
-	
+
 	@Override
 	public AuthenticationHandler getAuthenticationHandler() {
 		return this.authenticationHandler;
 	}
-	
+
 	@Override
 	public void setAuthenticationHandler(AuthenticationHandler authenticationHandler) {
 		this.authenticationHandler = authenticationHandler;
 	}
-	
+
 	@Override
 	public String getRealmName() {
 		return this.realmName;
 	}
-	
+
 	@Override
 	public void setRealmName(String realmName) {
 		this.realmName = realmName;
 	}
+	
+	public String getOpenId() {
+		return this.openId;
+	}
+	
+	public void setOpenId(String openId) {
+		this.openId = openId;
+	}
 
 	@Override
 	public void validate(ShiroRealm realm, Map<String, Object> params) throws AuthenticationException {
-		this.setRealmName(realm.getName());
+		// TODO Auto-generated method stub
+		
 	}
-	
-	/**
-	 * 创建 token
-	 * @param request
-	 * @return
-	 */
-	public static UsernamePasswordToken create(ServletRequest request) {
-		HttpServletRequest httpRequest = (HttpServletRequest) request;
-        UsernamePasswordToken token = new UsernamePasswordToken();
-        return token;
+
+	@Override
+	public Object getPrincipal() {
+		return null;
 	}
+
+	@Override
+	public Object getCredentials() {
+		return this.openId;
+	}
+
 }

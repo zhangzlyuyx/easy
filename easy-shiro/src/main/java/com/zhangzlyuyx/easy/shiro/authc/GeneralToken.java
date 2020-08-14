@@ -122,7 +122,7 @@ public class GeneralToken implements AuthenticationToken, ShiroToken {
 	}
 
 	@Override
-	public void validation(ShiroRealm realm, Map<String, Object> params) throws AuthenticationException {
+	public void validate(ShiroRealm realm, Map<String, Object> params) throws AuthenticationException {
 		this.setRealmName(realm.getName());
 	}
 

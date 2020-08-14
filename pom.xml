@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.zhangzlyuyx</groupId>
 	<artifactId>easy-parent</artifactId>
-	<version>0.0.8</version>
+	<version>0.0.9</version>
 	<packaging>pom</packaging>
 	<name>easy-parent</name>
 	<description>easy-parent</description>
@@ -107,8 +107,8 @@
 		<module>easy-mybatis</module>
 		<module>easy-shiro</module>
 		<module>easy-spring</module>
-    <module>easy-storage</module>
-    <module>easy-media</module>
+    	<module>easy-storage</module>
+    	<module>easy-media</module>
   </modules>
 
 	<distributionManagement>

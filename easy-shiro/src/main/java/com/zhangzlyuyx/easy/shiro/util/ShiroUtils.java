@@ -2,7 +2,6 @@ package com.zhangzlyuyx.easy.shiro.util;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -13,6 +12,8 @@ import org.apache.shiro.realm.Realm;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.Subject;
+import org.apache.shiro.web.util.SavedRequest;
+import org.apache.shiro.web.util.WebUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -24,6 +25,7 @@ import com.zhangzlyuyx.easy.shiro.authc.AccessToken;
 import com.zhangzlyuyx.easy.shiro.authz.AuthenticationHandler;
 import com.zhangzlyuyx.easy.shiro.authz.SimpleAuthenticationHandler;
 import com.zhangzlyuyx.easy.shiro.filter.AuthenticationFilter;
+import com.zhangzlyuyx.easy.spring.util.SpringUtils;
 
 /**
  * shiro工具类
@@ -149,15 +151,53 @@ public class ShiroUtils {
 	 */
 	public static AuthenticationHandler getAuthenticationHandler(ServletRequest request) {
 		AuthenticationHandler authenticationHandler = null;
-		if(request != null) {
+		
+		if(authenticationHandler == null) {
 			try {
-				ApplicationContext applicationContext = WebApplicationContextUtils.getWebApplicationContext(request.getServletContext());
-				authenticationHandler = applicationContext.getBean(AuthenticationHandler.class);
+				authenticationHandler = SpringUtils.getWebApplicationContext(request != null ? request.getServletContext() : null).getBean(AuthenticationHandler.class);
 				if(authenticationHandler != null) {
 					return authenticationHandler;
 				}
 			} catch (Exception e) {
 				log.warn("", e);
+			}
+		}
+		if(authenticationHandler == null) {
+			authenticationHandler = SimpleAuthenticationHandler.getInstance();
+			if(authenticationHandler != null) {
+				return authenticationHandler;
+			}
+		}
+		return authenticationHandler;
+	}
+	
+	/**
+	 * 获取认证处理器
+	 * @param token
+	 * @return
+	 */
+	public static AuthenticationHandler getAuthenticationHandler(AuthenticationToken token) {
+		AuthenticationHandler authenticationHandler = null;
+		if(token != null && token instanceof ShiroToken) {
+			authenticationHandler = ((ShiroToken)token).getAuthenticationHandler();
+		}
+		if(authenticationHandler == null) {
+			authenticationHandler = SimpleAuthenticationHandler.getInstance();
+		}
+		return authenticationHandler;
+	}
+	
+	/**
+	 * 获取认证处理器
+	 * @param token
+	 * @return
+	 */
+	public static AuthenticationHandler getAuthenticationHandler(Object principal) {
+		AuthenticationHandler authenticationHandler = null;
+		if(principal != null && principal instanceof ShiroPrincipal) {
+			ShiroPrincipal shiroPrincipal = (ShiroPrincipal)principal;
+			if(shiroPrincipal.getShiroToken() != null && shiroPrincipal.getShiroToken().getAuthenticationHandler() != null) {
+				authenticationHandler = shiroPrincipal.getShiroToken().getAuthenticationHandler();
 			}
 		}
 		if(authenticationHandler == null) {
@@ -201,24 +241,65 @@ public class ShiroUtils {
 	}
 	
 	/**
-	 * 转换 shiro token
-	 * @param authenticationFilter 过滤器
-	 * @param token
-	 * @param request
-	 * @param response
+	 * 获取 shiro 会话
 	 * @return
 	 */
-	public static AuthenticationToken convertToken(AuthenticationFilter authenticationFilter, AuthenticationToken token, ServletRequest request, ServletResponse response) {
-		AuthenticationHandler authenticationHandler = authenticationFilter.getAuthenticationHandler(request);
-		if(authenticationHandler == null) {
-			throw new AuthenticationException("authenticationHandler is empty");
+	public static Session getShiroSession() {
+		Subject subject = getSubject();
+		return subject != null ? subject.getSession() : null;
+	}
+	
+	/**
+	 * 获取 shiro 会话属性值 
+	 * @param key
+	 * @return
+	 */
+	public static Object getShiroSessionAttribute(Object key) {
+		Session session = getShiroSession();
+		if(session == null) {
+			return null;
 		}
-		AuthenticationToken authenticationToken = authenticationHandler.createToken(authenticationFilter, token, request, response);
-		if(authenticationToken instanceof ShiroToken) {
-			ShiroToken shiroToken = (ShiroToken)authenticationToken;
-			shiroToken.setGroup(authenticationFilter.getGroup());
-			shiroToken.setAuthenticationHandler(authenticationHandler);
+		return session.getAttribute(key);
+	}
+
+	/**
+	 * 设置 shiro 会话属性值
+	 * @param key
+	 * @param value
+	 * @return
+	 */
+	public static Boolean setShiroSessionAttribute(Object key, Object value) {
+		Session session = getShiroSession();
+		if(session == null) {
+			return null;
 		}
-		return authenticationToken;
+		session.setAttribute(key, value);
+		return true;
+	}
+	
+	/**
+	 * 保存当前请求
+	 * @param request
+	 */
+	public static void saveRequest(ServletRequest request) {
+		WebUtils.saveRequest(request);
+	}
+	
+	/**
+	 * 获取保存的请求
+	 * @param request
+	 * @return
+	 */
+	public static SavedRequest getSavedRequest(ServletRequest request) {
+		return WebUtils.getSavedRequest(request);
+	}
+	
+	/**
+	 * 获取保存的请求并清除保存
+	 * @param request
+	 * @return
+	 */
+	public static SavedRequest getAndClearSavedRequest(ServletRequest request) {
+		return WebUtils.getAndClearSavedRequest(request);
 	}
 }

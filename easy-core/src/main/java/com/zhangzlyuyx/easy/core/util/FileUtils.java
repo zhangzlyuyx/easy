@@ -34,10 +34,29 @@ public class FileUtils {
 	}
 	
 	/**
+	 * 获取文件名
+	 * @param filePath
+	 * @return
+	 */
+	public static String getFileName(String filePath) {
+		return FileUtil.getName(filePath);
+	}
+	
+	/**
 	 * 获取文件扩展名,扩展名不带“.”
 	 * @param file 文件
 	 * @return
 	 */
+	public static String getFileExtName(File file) {
+		return FileUtil.extName(file);
+	}
+	
+	/**
+	 * 获取文件扩展名,扩展名不带“.”
+	 * @param file 文件
+	 * @return
+	 */
+	@Deprecated
 	public static String getExtName(File file) {
 		return FileUtil.extName(file);
 	}
@@ -47,6 +66,16 @@ public class FileUtils {
 	 * @param fileName 文件名
 	 * @return
 	 */
+	public static String getFileExtName(String fileName) {
+		return FileUtil.extName(fileName);
+	}
+	
+	/**
+	 * 获取文件扩展名,扩展名不带“.”
+	 * @param fileName 文件名
+	 * @return
+	 */
+	@Deprecated
 	public static String getExtName(String fileName) {
 		return FileUtil.extName(fileName);
 	}
@@ -55,6 +84,15 @@ public class FileUtils {
 	 * 获取随机文件名
 	 * @return
 	 */
+	public static String getFileRandomName(String extName) {
+		return UUID.randomUUID().toString().replace("-", "") + (extName != null ? "." + extName.trim() : "");
+	}
+	
+	/**
+	 * 获取随机文件名
+	 * @return
+	 */
+	@Deprecated
 	public static String getRandomName(String extName) {
 		return UUID.randomUUID().toString().replace("-", "") + (extName != null ? "." + extName.trim() : "");
 	}
@@ -64,8 +102,42 @@ public class FileUtils {
 	 * @param path
 	 * @return
 	 */
+	public static boolean existFile(String path) {
+		return FileUtil.exist(path);
+	}
+	
+	/**
+	 * 判断文件是否存在，
+	 * @param path
+	 * @return
+	 */
+	@Deprecated
 	public static boolean exist(String path) {
 		return FileUtil.exist(path);
+	}
+	
+	/**
+	 * 修改文件或目录的文件名，不变更路径，只是简单修改文件名
+	 * @param file
+	 * @param newName
+	 * @param isOverride
+	 * @return
+	 */
+	public static File renameFile(File file, String newName, boolean isOverride) {
+		return FileUtil.rename(file, newName, false, isOverride);
+	}
+	
+	/**
+	 * 拷贝文件或目录
+	 * @param src 源文件
+	 * @param dest 
+Parameters:src 源文件dest 
+	 * @param isOverride
+	 * @return
+	 */
+	public static File copyFile(File src, File dest, boolean isOverride) {
+		File file = FileUtil.copy(src, dest, isOverride);
+		return file;
 	}
 	
 	/**

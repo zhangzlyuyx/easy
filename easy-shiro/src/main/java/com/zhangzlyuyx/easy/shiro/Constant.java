@@ -43,10 +43,8 @@ public class Constant {
 	public static final String SHIROTOKEN__ATTRIBUTE_URL = "url";
 	
 	/**
-	 * cas ticket 验证器参数名称
+	 * cas 票据参数名
 	 */
-	public static final String CAS_TICKETVALIDATOR_PARAM = "ticketValidator";
-	
 	public static final String CAS_TICKET_PARAMETER = "ticket";
 
 }

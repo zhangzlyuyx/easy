@@ -84,4 +84,23 @@ public class StringUtils {
 		}
 	}
 	
+	/**
+	 * 切分字符串
+	 * @param str 被切分的字符串
+	 * @param separator 分隔符
+	 * @return
+	 */
+	public static String[] split(String str, String separator) {
+		return StrUtil.split(str, separator);
+	}
+	
+	/**
+	 * 字符串
+	 * @param conjunction 分隔符
+	 * @param objs
+	 * @return
+	 */
+	public static String join(CharSequence conjunction, Object... objs) {
+		return StrUtil.join(conjunction, objs);
+	}
 }

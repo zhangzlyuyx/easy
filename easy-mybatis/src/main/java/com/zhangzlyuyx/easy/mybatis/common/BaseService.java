@@ -7,6 +7,7 @@ import java.util.Map;
 import com.zhangzlyuyx.easy.mybatis.Condition;
 import com.zhangzlyuyx.easy.mybatis.IPageQuery;
 import com.zhangzlyuyx.easy.mybatis.IPageResult;
+import com.zhangzlyuyx.easy.mybatis.enums.DbType;
 
 import tk.mybatis.mapper.common.Mapper;
 import tk.mybatis.mapper.entity.Example;
@@ -36,6 +37,12 @@ public interface BaseService<T> {
 	 * @return
 	 */
 	String getEntityTable();
+	
+	/**
+	 * 获取数据库类型
+	 * @return
+	 */
+	DbType getDbType();
 
 	/**
 	 * 保存一个实体
@@ -87,6 +94,13 @@ public interface BaseService<T> {
 	 * @return
 	 */
 	int deleteByEntity(Mapper<T> mapper, T record);
+	
+	/**
+	 * 根据实体条件删除数据
+	 * @param record 实体查询条件
+	 * @return
+	 */
+	int deleteByEntity(T record);
 	
 	/**
 	 * 根据map条件删除数据
@@ -345,6 +359,12 @@ public interface BaseService<T> {
 	 * @return
 	 */
 	<E> List<E> selectListBySql(String sql, Object parameter, Class<E> resultType);
+	
+	/**
+	 * 获取服务器时间 
+	 * @return
+	 */
+	Date getDate();
 	
 	/**
 	 * 获取 mysql 服务器时间

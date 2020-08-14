@@ -1,6 +1,7 @@
 package com.zhangzlyuyx.easy.shiro.authz;
 
 import java.util.Collection;
+import java.util.Map;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -8,8 +9,11 @@ import javax.servlet.ServletResponse;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authz.Permission;
+import org.apache.shiro.realm.AuthorizingRealm;
+import org.jasig.cas.client.validation.TicketValidator;
 
 import com.zhangzlyuyx.easy.core.Result;
+import com.zhangzlyuyx.easy.shiro.ShiroRealm;
 import com.zhangzlyuyx.easy.shiro.filter.AuthenticationFilter;
 
 /**
@@ -30,7 +34,23 @@ public interface AuthenticationHandler {
 	AuthenticationToken createToken(AuthenticationFilter authenticationFilter, AuthenticationToken token, ServletRequest request, ServletResponse response);
 	
 	/**
-	 * 验证 token
+	 * 创建 token 验证参数
+	 * @param token
+	 * @return
+	 */
+	Map<String, Object> createValidateParams(ShiroRealm realm, AuthenticationToken token);
+	
+	/**
+	 * realm 验证 token
+	 * @param realm
+	 * @param token
+	 * @return
+	 * @throws AuthenticationException
+	 */
+	Result<String> validateToken(ShiroRealm realm, AuthenticationToken token) throws AuthenticationException;
+	
+	/**
+	 * filter 验证 token
 	 * @param authenticationFilter
 	 * @param token
 	 * @param request
@@ -75,4 +95,25 @@ public interface AuthenticationHandler {
 	 * @return
 	 */
 	Collection<Permission> getObjectPermissions(Object principal);
+	
+	/**
+	 * 获取认证缓存 key
+	 * @param token
+	 * @return
+	 */
+	Object getAuthenticationCacheKey(AuthenticationToken token);
+	
+	/**
+	 * 获取认证缓存 key
+	 * @param principal
+	 * @return
+	 */
+	Object getAuthenticationCacheKey(Object principal);
+	
+	/**
+	 * 获取授权缓存 key
+	 * @param principal
+	 * @return
+	 */
+	Object getAuthorizationCacheKey(Object principal);
 }

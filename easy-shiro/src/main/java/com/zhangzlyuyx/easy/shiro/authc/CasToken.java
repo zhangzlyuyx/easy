@@ -48,6 +48,21 @@ public class CasToken extends org.apache.shiro.cas.CasToken implements ShiroToke
 	 * 认证域名称
 	 */
 	private String realmName;
+	
+	/**
+	 * cas 服务器地址前缀
+	 */
+	private String casServerUrlPrefix;
+	
+	/**
+	 * cas 验证协议
+	 */
+	private String casValidationProtocol;
+	
+	/**
+	 * 自定义 cas 服务名
+	 */
+	private String casService;
 
 	public CasToken(String ticket) {
 		super(ticket);
@@ -133,17 +148,45 @@ public class CasToken extends org.apache.shiro.cas.CasToken implements ShiroToke
 		this.realmName = realmName;
 	}
 	
+	public String getCasServerUrlPrefix() {
+		return this.casServerUrlPrefix;
+	}
+	
+	public void setCasServerUrlPrefix(String casServerUrlPrefix) {
+		this.casServerUrlPrefix = casServerUrlPrefix;
+	}
+	
+	public String getCasService() {
+		return this.casService;
+	}
+	
+	public void setCasService(String casService) {
+		this.casService = casService;
+	}
+	
+	public String getCasValidationProtocol() {
+		return this.casValidationProtocol;
+	}
+	
+	public void setCasValidationProtocol(String casValidationProtocol) {
+		this.casValidationProtocol = casValidationProtocol;
+	}
+	
 	@Override
-	public void validation(ShiroRealm realm, Map<String, Object> params) throws AuthenticationException {
+	public void validate(ShiroRealm realm, Map<String, Object> params) throws AuthenticationException {
+		if(this.getAuthenticationHandler() == null) {
+			throw new AuthenticationException("认证 authenticationHandler 不能为空");
+		}
 		this.setRealmName(realm.getName());
-		TicketValidator ticketValidator = (TicketValidator)params.get(Constant.CAS_TICKETVALIDATOR_PARAM);
+		//获取cas票据验证器
+		TicketValidator ticketValidator = realm.createCasTicketValidator(this);
 		String ticket = (String)this.getCredentials();
         if (!StringUtils.hasText(ticket)) {
             throw new AuthenticationException("无效的 ticket");
         }
         try {
             // contact CAS server to validate service ticket
-            Assertion casAssertion = ticketValidator.validate(ticket, realm.getCasService());
+            Assertion casAssertion = ticketValidator.validate(ticket, this.getCasService() != null ? this.getCasService() : realm.getCasService());
             // get principal, user id and attributes
             AttributePrincipal casPrincipal = casAssertion.getPrincipal();
             String userId = casPrincipal.getName();

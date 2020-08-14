@@ -2,6 +2,7 @@ package com.zhangzlyuyx.easy.mybatis.common;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -10,11 +11,14 @@ import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.zhangzlyuyx.easy.mybatis.Condition;
 import com.zhangzlyuyx.easy.mybatis.IPageQuery;
 import com.zhangzlyuyx.easy.mybatis.IPageResult;
+import com.zhangzlyuyx.easy.mybatis.enums.DbType;
 import com.zhangzlyuyx.easy.mybatis.util.MapperUtils;
 
 import tk.mybatis.mapper.common.Mapper;
@@ -23,6 +27,8 @@ import tk.mybatis.mapper.entity.Example;
 import tk.mybatis.mapper.mapperhelper.EntityHelper;
 
 public abstract class BaseServiceImpl<T> implements BaseService<T> {
+	
+	private static final Logger log = LoggerFactory.getLogger(BaseServiceImpl.class);
 	
 	@Autowired(required = false)
 	private SqlSessionFactory sqlSessionFactory;
@@ -66,6 +72,33 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 			sqlSession = sqlSessionFactory.openSession();
 		}
 		return sqlSession;
+	}
+	
+	/**
+	 * 获取 sql 数据库连接
+	 * @return
+	 */
+	public Connection getSqlConnection() {
+		return this.getSqlSession().getConnection();
+	}
+	
+	@Override
+	public DbType getDbType() {
+		try {
+			String driverName = this.getSqlConnection().getMetaData().getDriverName();
+			if(driverName.toUpperCase().indexOf("MySQL") > -1) {
+				return DbType.mysql;
+			} else if(driverName.toUpperCase().indexOf("SQL SERVER") > -1 || driverName.toUpperCase().indexOf("SQLSERVER") > -1) {
+				return DbType.sqlserver;
+			} else if(driverName.toUpperCase().indexOf("ORACLE") > -1) {
+				return DbType.oracle;
+			} else {
+				return DbType.unkown;
+			}
+		} catch (Exception e) {
+			log.error("", e);
+			return DbType.unkown;
+		}
 	}
 	
 	/**
@@ -116,7 +149,13 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 	}
 	
 	@Override
+	@Deprecated
 	public int deleteByEntity(Mapper<T> mapper, T record) {
+		return MapperUtils.deleteByEntity(this.getMapper(), record);
+	}
+	
+	@Override
+	public int deleteByEntity(T record) {
 		return MapperUtils.deleteByEntity(this.getMapper(), record);
 	}
 	
@@ -380,6 +419,20 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 		SqlSession sqlSession = this.getSqlSession();
 		String msId = MapperUtils.getMappedStatementId(sqlSession, SqlCommandType.SELECT, sql, (parameter != null ? parameter.getClass() : null), resultType);
 		return sqlSession.selectList(msId, parameter);
+	}
+	
+	@Override
+	public Date getDate() {
+		DbType dbType = this.getDbType();
+		if(dbType.equals(DbType.mysql)) {
+			return this.getMySqlDate();
+		} else if(dbType.equals(DbType.sqlserver)) {
+			return this.getSqlServerDate();
+		} else if(dbType.equals(DbType.oracle)) {
+			return this.getOracleDate();
+		} else {
+			return null;
+		}
 	}
 	
 	@Override

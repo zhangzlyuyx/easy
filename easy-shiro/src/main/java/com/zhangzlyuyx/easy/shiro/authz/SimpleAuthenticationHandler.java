@@ -1,20 +1,28 @@
 package com.zhangzlyuyx.easy.shiro.authz;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authz.Permission;
+import org.apache.shiro.subject.PrincipalCollection;
 
 import com.zhangzlyuyx.easy.core.Result;
 import com.zhangzlyuyx.easy.shiro.Constant;
 import com.zhangzlyuyx.easy.shiro.ShiroPrincipal;
+import com.zhangzlyuyx.easy.shiro.ShiroRealm;
 import com.zhangzlyuyx.easy.shiro.ShiroToken;
+import com.zhangzlyuyx.easy.shiro.authc.AccessToken;
+import com.zhangzlyuyx.easy.shiro.authc.CasToken;
+import com.zhangzlyuyx.easy.shiro.authc.UsernamePasswordToken;
 import com.zhangzlyuyx.easy.shiro.filter.AuthenticationFilter;
 import com.zhangzlyuyx.easy.spring.util.SpringUtils;
 
@@ -80,9 +88,26 @@ public abstract class SimpleAuthenticationHandler implements AuthenticationHandl
 	}
 	
 	@Override
+	public Map<String, Object> createValidateParams(ShiroRealm realm, AuthenticationToken token){
+		Map<String, Object> params = new HashMap<>();
+		return params;
+	}
+	
+	@Override
+	public Result<String> validateToken(ShiroRealm realm, AuthenticationToken token) throws AuthenticationException {
+		if(token instanceof ShiroToken) {
+			((ShiroToken)token).validate(realm, this.createValidateParams(realm, token));
+		}
+		return new Result<>(true, "");
+	}
+	
+	@Override
 	public Result<String> validateToken(AuthenticationFilter authenticationFilter, AuthenticationToken token,
 			ServletRequest request, ServletResponse response) {
 		
+		if(token.getPrincipal() == null) {
+			return new Result<>(false, "");
+		}
 		return new Result<>(true, "");
 	}
 
@@ -119,6 +144,41 @@ public abstract class SimpleAuthenticationHandler implements AuthenticationHandl
 	public Collection<Permission> getObjectPermissions(Object principal) {
 		return new HashSet<Permission>();
 	}
-
 	
+	@Override
+	public Object getAuthenticationCacheKey(AuthenticationToken token) {
+		if(token == null) {
+			return null;
+		}
+		if(token instanceof UsernamePasswordToken) {
+			return ((UsernamePasswordToken)token).getUsername();
+		} else if(token instanceof CasToken) {
+			return ((CasToken)token).getPrincipal();
+		} else if(token instanceof AccessToken) {
+			return ((AccessToken)token).getAccessToken();
+		}
+		return token.getPrincipal();
+	}
+	
+	@Override
+	public Object getAuthenticationCacheKey(Object principal) {
+		if(principal == null) {
+			return null;
+		}
+		if(principal instanceof ShiroPrincipal) {
+			return ((ShiroPrincipal)principal).getUserName();
+		}
+		return principal;
+	}
+	
+	@Override
+	public Object getAuthorizationCacheKey(Object principal) {
+		if(principal == null) {
+			return null;
+		}
+		if(principal instanceof ShiroPrincipal) {
+			return ((ShiroPrincipal)principal).getUserName();
+		}
+		return principal;
+	}
 }

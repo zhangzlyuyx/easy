@@ -9,12 +9,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.web.bind.ServletRequestDataBinder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.context.ContextLoader;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -32,7 +37,29 @@ import cn.hutool.extra.servlet.ServletUtil;
  *
  */
 public class SpringUtils {
+	
+	private static final Logger log = LoggerFactory.getLogger(SpringUtils.class);
 
+	/**
+	 * 获取 spring webApplicationContext
+	 * @return
+	 */
+	public static WebApplicationContext getWebApplicationContext(ServletContext servletContext) {
+		if(servletContext != null) {
+			return WebApplicationContextUtils.getWebApplicationContext(servletContext);
+		}
+		return ContextLoader.getCurrentWebApplicationContext();
+	}
+	
+	/**
+	 * 是否为GET请求
+	 * @param request
+	 * @return
+	 */
+	public static boolean isGetMethod(ServletRequest request) {
+		return ServletUtil.isGetMethod((HttpServletRequest)request);
+	}
+	
 	/**
 	 * 是否为GET请求
 	 * @param request
@@ -40,6 +67,15 @@ public class SpringUtils {
 	 */
 	public static boolean isGetMethod(HttpServletRequest request) {
 		return ServletUtil.isGetMethod(request);
+	}
+	
+	/**
+	 * 是否为POST请求
+	 * @param request
+	 * @return
+	 */
+	public static boolean isPostMethod(ServletRequest request) {
+		return ServletUtil.isPostMethod((HttpServletRequest)request);
 	}
 	
 	/**
@@ -238,10 +274,31 @@ public class SpringUtils {
 	 * @return
 	 */
 	public static String getParameter(HttpServletRequest request, String name) {
+		return getParameter(request, name, Constant.CHARSET_UTF_8);
+	}
+	
+	/**
+	 * 获取请求参数
+	 * @param request
+	 * @param name 参数名称
+	 * @param charset 字符集
+	 * @return
+	 */
+	public static String getParameter(HttpServletRequest request, String name, String charset) {
 		String parameter = request.getParameter(name);
 		if(parameter == null) {
 			return parameter;
 		}
+		//字符集不匹配则自动转换
+		if(charset != null && !charset.equalsIgnoreCase(request.getCharacterEncoding())) {
+			String characterEncoding = request.getCharacterEncoding();
+			try {
+				parameter = new String(parameter.getBytes(characterEncoding), charset);
+			} catch (Exception e) {
+				log.warn(e.getMessage(), e);
+			}
+		}
+		//清除首尾空白
 		parameter = StringUtils.trim(parameter);
 		return parameter;
 	}

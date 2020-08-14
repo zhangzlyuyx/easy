@@ -90,5 +90,5 @@ public interface ShiroToken extends AuthenticationToken {
 	 * @param params 参数集合
 	 * @throws AuthenticationException
 	 */
-	void validation(ShiroRealm realm, Map<String, Object> params) throws AuthenticationException;
+	void validate(ShiroRealm realm, Map<String, Object> params) throws AuthenticationException;
 }
