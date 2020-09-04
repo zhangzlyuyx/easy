@@ -1,8 +1,11 @@
 package com.zhangzlyuyx.easy.core.util;
 
 import java.io.BufferedOutputStream;
+import java.io.Closeable;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -17,11 +20,16 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
+import org.apache.http.StatusLine;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.config.RequestConfig.Builder;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
@@ -39,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSONObject;
+import com.zhangzlyuyx.easy.core.ActionCallback;
 import com.zhangzlyuyx.easy.core.Constant;
 import com.zhangzlyuyx.easy.core.IResult;
 import com.zhangzlyuyx.easy.core.Result;
@@ -68,54 +77,26 @@ public class HttpUtils {
 	 * @return
 	 */
 	public static Result<String> httpFileUpload(String url, final Map<String, String> headers, final Map<String, String> params, final String filename, final InputStream inputStream, final boolean closeStream){
-		//result
-		final Result<String> retResult = new Result<>(true, "请求成功");
+
+		//multipartEntityBuilder
+		MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
+		multipartEntityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+		multipartEntityBuilder.setCharset(Charset.forName(DEFAULT_CHARSET));
+		//params
+		if(params != null && params.size() > 0) {
+			for(Entry<String, String> kv : params.entrySet()) {
+				multipartEntityBuilder.addTextBody(kv.getKey(), kv.getValue());
+			}
+		}
+		//file
+		if(inputStream != null) {
+			multipartEntityBuilder.addBinaryBody("file", inputStream, ContentType.DEFAULT_BINARY, filename);
+		}
+		HttpEntity postEntity = multipartEntityBuilder.build();
+		HttpClientRequest httpClientRequest = HttpClientRequest.createHttpPost(url, headers, postEntity);
+		
 		//执行post请求
-		Result<String> ret = httpPost(url, new ResultCallback<HttpPost>() {
-			@Override
-			public IResult<HttpPost> result(HttpPost httpPost) {
-				//headers
-				if(headers != null && headers.size() > 0) {
-					for(Entry<String, String> kv : headers.entrySet()) {
-						httpPost.addHeader(kv.getKey(), kv.getValue());
-					}
-				}
-				MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
-				multipartEntityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-				multipartEntityBuilder.setCharset(Charset.forName(DEFAULT_CHARSET));
-				//params
-				if(params != null && params.size() > 0) {
-					for(Entry<String, String> kv : params.entrySet()) {
-						multipartEntityBuilder.addTextBody(kv.getKey(), kv.getValue());
-					}
-				}
-				//file
-				if(inputStream != null) {
-					multipartEntityBuilder.addBinaryBody("file", inputStream, ContentType.DEFAULT_BINARY, filename);
-				}
-				HttpEntity httpEntity = multipartEntityBuilder.build();
-				httpPost.setEntity(httpEntity);
-				return new Result<>(true, "", httpPost);
-			}
-		}, new ResultCallback<HttpResponse>() {
-			
-			@Override
-			public IResult<HttpResponse> result(HttpResponse response) {
-				//status
-				if(response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-					return new Result<>(false, response.getStatusLine().toString());
-				}
-				try {
-					HttpEntity httpEntity = response.getEntity();
-					String body = EntityUtils.toString(httpEntity, DEFAULT_CHARSET);
-					EntityUtils.consume(httpEntity);
-					retResult.setData(body);
-					return new Result<>(true, "请求成功!");
-				} catch (Exception ex) {
-					return new Result<>(false, ex.getMessage());
-				}
-			}
-		});
+		Result<String> retResult = httpRequestReturnString(httpClientRequest);
 		
 		//关闭输入流
 		if(closeStream) {
@@ -126,8 +107,8 @@ public class HttpUtils {
 			}
 		}
 		
-		if(!ret.isSuccess()) {
-			return ret;
+		if(!retResult.isSuccess()) {
+			return retResult;
 		}
 		
 		return retResult;
@@ -210,32 +191,8 @@ public class HttpUtils {
 	 * @return
 	 */
 	public static Result<String> httpGetReturnString(String url, Map<String, String> headers, Map<String, String> params) {
-		//result
-		final Result<String> retResult = new Result<>(true, "");
-		//get
-		Result<String> retGet = httpGet(url, headers, params, new ResultCallback<HttpResponse>() {
-			@Override
-			public IResult<HttpResponse> result(HttpResponse response) {
-				//status
-				if(response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-					return new Result<>(false, response.getStatusLine().toString());
-				}
-				try {
-					HttpEntity responeEntity = response.getEntity();
-					String data = EntityUtils.toString(responeEntity, DEFAULT_CHARSET);
-					EntityUtils.consume(responeEntity);
-					retResult.setData(data);
-					return new Result<>(true, "", response);
-				} catch (Exception e) {
-					log.error(e.getMessage(), e);
-					return new Result<>(false, e.getMessage());
-				}
-			}
-		});
-		if(!retGet.isSuccess()) {
-			return retGet;
-		}
-		return retResult;
+		HttpClientRequest httpClientRequest = HttpClientRequest.createHttpGet(url, headers, params);
+		return httpRequestReturnString(httpClientRequest);
 	}
 	
 	/**
@@ -246,18 +203,20 @@ public class HttpUtils {
 	 * @return
 	 */
 	public static Result<JSONObject> httpGetReturnJson(String url, Map<String, String> headers, Map<String, String> params) {
-		//get
-		Result<String> ret = httpGetReturnString(url, headers, params);
-		if(!ret.isSuccess()) {
-			return new Result<>(false, ret.getMsg());
-		}
-		try {
-			JSONObject json = JSONObject.parseObject(ret.getData());
-			return new Result<JSONObject>(true, "", json);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-			return new Result<>(false, e.getMessage());
-		}
+		HttpClientRequest httpClientRequest = HttpClientRequest.createHttpGet(url, headers, params);
+		return httpRequestReturnJson(httpClientRequest);
+	}
+	
+	/**
+	 * http GET 请求
+	 * @param url
+	 * @param headers
+	 * @param responseCallback
+	 * @return
+	 */
+	public static Result<String> httpGet(String url, Map<String, String> headers, ResultCallback<HttpResponse> responseCallback) {
+		HttpClientRequest httpClientRequest = HttpClientRequest.createHttpGet(url, headers, null);
+		return httpRequest(httpClientRequest, responseCallback);
 	}
 	
 	/**
@@ -269,48 +228,8 @@ public class HttpUtils {
 	 * @return
 	 */
 	public static Result<String> httpGet(String url, Map<String, String> headers, Map<String, String> params, ResultCallback<HttpResponse> responseCallback) {
-		try {
-			//params
-			if(params != null && params.size() > 0) {
-				Result<String> retSet = setUrlParameter(url, params);
-				if(retSet.isSuccess()) {
-					url = retSet.getData();
-				}
-			}
-			//headers
-			final Map<String, String> getHeaders = headers;
-			//get
-			return httpGet(url, new ResultCallback<HttpGet>() {
-				@Override
-				public IResult<HttpGet> result(HttpGet httpGet) {
-					//headers
-					if(getHeaders != null && getHeaders.size() > 0) {
-						for(Entry<String, String> kv : getHeaders.entrySet()) {
-							httpGet.addHeader(kv.getKey(), kv.getValue());
-						}
-					}
-					return new Result<>(true, "", httpGet);
-				}
-			}, responseCallback);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-			return new Result<>(false, e.getMessage());
-		}
-	}
-
-	/**
-	 * http GET 请求
-	 * @param url
-	 * @param getCallback
-	 * @param responseCallback
-	 * @return
-	 */
-	public static Result<String> httpGet(String url, ResultCallback<HttpGet> getCallback, ResultCallback<HttpResponse> responseCallback) {
-		HttpGet httpGet = new HttpGet(url);
-		if(getCallback != null) {
-			getCallback.result(httpGet);
-		}
-		return httpRequest(httpGet, null, responseCallback);
+		HttpClientRequest httpClientRequest = HttpClientRequest.createHttpGet(url, headers, params);
+		return httpRequest(httpClientRequest, responseCallback);
 	}
 	
 	/**
@@ -321,32 +240,8 @@ public class HttpUtils {
 	 * @return
 	 */
 	public static Result<String> httpPostReturnString(String url, Map<String, String> headers, Map<String, String> params) {
-		//result
-		final Result<String> retResult = new Result<>(true, "");
-		//post
-		Result<String> retGet = httpPost(url, headers, params, new ResultCallback<HttpResponse>() {
-			@Override
-			public IResult<HttpResponse> result(HttpResponse response) {
-				//status
-				if(response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-					return new Result<>(false, response.getStatusLine().toString());
-				}
-				try {
-					HttpEntity responeEntity = response.getEntity();
-					String data = EntityUtils.toString(responeEntity, DEFAULT_CHARSET);
-					EntityUtils.consume(responeEntity);
-					retResult.setData(data);
-					return new Result<>(true, "", response);
-				} catch (Exception e) {
-					log.error(e.getMessage(), e);
-					return new Result<>(false, e.getMessage());
-				}
-			}
-		});
-		if(!retGet.isSuccess()) {
-			return retGet;
-		}
-		return retResult;
+		HttpClientRequest httpClientRequest = HttpClientRequest.createHttpPost(url, headers, params);
+		return httpRequestReturnString(httpClientRequest);
 	}
 	
 	/**
@@ -357,18 +252,8 @@ public class HttpUtils {
 	 * @return
 	 */
 	public static Result<JSONObject> httpPostReturnJson(String url, Map<String, String> headers, Map<String, String> params) {
-		//post
-		Result<String> ret = httpPostReturnString(url, headers, params);
-		if(!ret.isSuccess()) {
-			return new Result<>(false, ret.getMsg());
-		}
-		try {
-			JSONObject json = JSONObject.parseObject(ret.getData());
-			return new Result<JSONObject>(true, "", json);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-			return new Result<>(false, e.getMessage());
-		}
+		HttpClientRequest httpClientRequest = HttpClientRequest.createHttpPost(url, headers, params);
+		return httpRequestReturnJson(httpClientRequest);
 	}
 	
 	/**
@@ -380,49 +265,46 @@ public class HttpUtils {
 	 * @return
 	 */
 	public static Result<String> httpPost(String url, Map<String, String> headers, Map<String, String> params, ResultCallback<HttpResponse> responseCallback) {
-		try {
-			List<NameValuePair> parameters = new LinkedList<>();
-			//params
-			if(params != null && params.size() > 0) {
-				for(Entry<String, String> kv : params.entrySet()) {
-					parameters.add(new BasicNameValuePair(kv.getKey(), kv.getValue()));
-				}
-			}
-			final UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(parameters, "UTF-8");
-			final Map<String, String> postHeaders = headers;
-			return httpPost(url, new ResultCallback<HttpPost>() {
-				@Override
-				public IResult<HttpPost> result(HttpPost httpPost) {
-					//headers
-					if(postHeaders != null && postHeaders.size() > 0) {
-						for(Entry<String, String> kv : postHeaders.entrySet()) {
-							httpPost.addHeader(kv.getKey(), kv.getValue());
-						}
-					}
-					//params
-					httpPost.setEntity(formEntity);
-					return new Result<>(true, "", httpPost);
-				}
-			}, responseCallback);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-			return new Result<>(false, e.getMessage());
-		}
+		HttpClientRequest httpClientRequest = HttpClientRequest.createHttpPost(url, headers, params);
+		return httpRequest(httpClientRequest, responseCallback);
 	}
 	
 	/**
 	 * http POST 请求
 	 * @param url
-	 * @param postCallback
+	 * @param headers
+	 * @param postEntity
 	 * @param responseCallback
 	 * @return
 	 */
-	public static Result<String> httpPost(String url, ResultCallback<HttpPost> postCallback, ResultCallback<HttpResponse> responseCallback) {
-		HttpPost httpPost = new HttpPost(url);
-		if(postCallback != null) {
-			postCallback.result(httpPost);
-		}
-		return httpRequest(httpPost, null, responseCallback);
+	public static Result<String> httpPost(String url, Map<String, String> headers, HttpEntity postEntity, ResultCallback<HttpResponse> responseCallback) {
+		HttpClientRequest httpClientRequest = HttpClientRequest.createHttpPost(url, headers, postEntity);
+		return httpRequest(httpClientRequest, responseCallback);
+	}
+	
+	/**
+	 * http PUT 请求
+	 * @param url
+	 * @param headers
+	 * @param httpEntity
+	 * @param responseCallback
+	 * @return
+	 */
+	public static Result<String> httpPut(String url, Map<String, String> headers, HttpEntity putEntity, ResultCallback<HttpResponse> responseCallback) {
+		HttpClientRequest httpClientRequest = HttpClientRequest.createHttpPut(url, headers, putEntity);
+		return httpRequest(httpClientRequest, responseCallback);
+	}
+	
+	/**
+	 * http DELETE 请求
+	 * @param url
+	 * @param headers
+	 * @param responseCallback
+	 * @return
+	 */
+	public static Result<String> httpDelete(String url, Map<String, String> headers, HttpEntity deleteEntity, ResultCallback<HttpResponse> responseCallback) {
+		HttpClientRequest httpClientRequest = HttpClientRequest.createHttpDelete(url, headers, deleteEntity);
+		return httpRequest(httpClientRequest, responseCallback);
 	}
 	
 	/**
@@ -432,90 +314,474 @@ public class HttpUtils {
 	 * @param responseCallback 响应回调
 	 * @return
 	 */
-	public static Result<String> httpRequest(HttpRequestBase httpRequest, ResultCallback<RequestConfig.Builder> configCallback, ResultCallback<HttpResponse> responseCallback) {
-		CloseableHttpClient closeableHttpClient = null;
-		CloseableHttpResponse closeableHttpResponse = null;
+	public static Result<String> httpRequest(HttpRequestBase httpRequest, final ResultCallback<RequestConfig.Builder> requestConfigCallback, ResultCallback<HttpResponse> responseCallback) {
+		HttpClientRequest httpClientRequest = new HttpClientRequest(httpRequest);
+		if(requestConfigCallback != null) {
+			httpClientRequest.setRequestConfigBuilderCallback(new ActionCallback<RequestConfig.Builder>() {
+				
+				@Override
+				public void action(Builder obj) {
+					
+					requestConfigCallback.result(obj);
+				}
+			});
+		}
+		return httpRequest(httpClientRequest, responseCallback);
+	}
+	
+	/**
+	 * http 请求 json
+	 * @param httpClientRequest 请求参数
+	 * @return
+	 */
+	public static Result<JSONObject> httpRequestReturnJson(HttpClientRequest httpClientRequest) {
+		Result<String> ret = httpRequestReturnString(httpClientRequest);
+		if(!ret.isSuccess()) {
+			return new Result<>(false, ret.getMsg());
+		}
 		try {
-			//创建客户端
-			closeableHttpClient = HttpClientBuilder.create().build();
-			//创建请求配置
-			RequestConfig.Builder configBuilder = RequestConfig.custom();
-			if(configCallback != null) {
-				configCallback.result(configBuilder);
+			JSONObject json = JSONObject.parseObject(ret.getData());
+			return new Result<JSONObject>(true, "", json);
+		} catch (Exception e) {
+			log.error("", e);
+			return new Result<>(false, e.getMessage());
+		}
+	}
+	
+	/**
+	 * http 请求 string
+	 * @param httpClientRequest 请求参数
+	 * @return
+	 */
+	public static Result<String> httpRequestReturnString(HttpClientRequest httpClientRequest) {
+		return httpRequest(httpClientRequest, null);
+	}
+	
+	/**
+	 * http 请求
+	 * @param httpClientRequest 请求参数
+	 * @return
+	 */
+	public static Result<String> httpRequest(HttpClientRequest httpClientRequest, final ResultCallback<HttpResponse> responseCallback) {
+		final Result<String> retResult = new Result<>(false, "");
+		httpClientRequest.setResponseCallback(new ActionCallback<HttpClientResponse>() {
+			
+			@Override
+			public void action(HttpClientResponse httpClientResponse) {
+				
+				if(responseCallback != null) {
+					IResult<HttpResponse> ret = responseCallback.result(httpClientResponse.getHttpResponse());
+					if(!ret.isSuccess()) {
+						retResult.setCode(false);
+						retResult.setMsg(ret.getMsg());
+					} else {
+						retResult.setCode(true);
+						retResult.setMsg("");
+					}
+				} else {
+					try {
+						HttpEntity responseEntity = httpClientResponse.getHttpEntity();
+						String body = EntityUtils.toString(responseEntity, DEFAULT_CHARSET);
+						EntityUtils.consume(responseEntity);
+						retResult.setCode(true);
+						retResult.setData(body);
+					} catch (Exception e) {
+						retResult.setCode(false);
+						retResult.setMsg(e.getMessage());
+					}
+				}
 			}
-			//应用配置
-			httpRequest.setConfig(configBuilder.build());
-			//httpContext
-			HttpContext httpContext = new BasicHttpContext();
-			//执行请求
-			closeableHttpResponse = closeableHttpClient.execute(httpRequest, httpContext);
+		});
+		Result<HttpClientResponse> ret = httpRequest(httpClientRequest);
+		if(!ret.isSuccess()) {
+			return new Result<>(false, ret.getMsg());
+		}
+		return retResult;
+	}
+	
+	/**
+	 * http 请求
+	 * @param httpClientRequest 请求参数
+	 * @return
+	 */
+	public static Result<HttpClientResponse> httpRequest(HttpClientRequest httpClientRequest) {
+		
+		HttpClientResponse httpClientResponse = new HttpClientResponse();
+		
+		try {
+			//httpClientBuilder
+			HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+			
+			//clientBuilderCallback
+			if(httpClientRequest.getClientBuilderCallback() != null) {
+				httpClientRequest.getClientBuilderCallback().action(httpClientBuilder);
+			}	
+			
+			//httpClient
+			CloseableHttpClient closeableHttpClient = httpClientBuilder.build();
+			httpClientRequest.setHttpClient(closeableHttpClient);
+			
+			//requestConfig
+			RequestConfig.Builder configBuilder = RequestConfig.custom();
+			
+			//RequestConfigBuilderCallback
+			if(httpClientRequest.getRequestConfigBuilderCallback() != null) {
+				httpClientRequest.getRequestConfigBuilderCallback().action(configBuilder);
+			}
+			httpClientRequest.getHttpRequest().setConfig(configBuilder.build());
+			
+			//RequestCallback
+			if(httpClientRequest.getRequestCallback() != null) {
+				httpClientRequest.getRequestCallback().action(httpClientRequest);
+			}
+			
+			//execute
+			CloseableHttpResponse closeableHttpResponse = null;
+			if(httpClientRequest.getHttpContext() != null) {
+				closeableHttpResponse = closeableHttpClient.execute(httpClientRequest.getHttpRequest(), httpClientRequest.getHttpContext());
+			} else {
+				closeableHttpResponse = closeableHttpClient.execute(httpClientRequest.getHttpRequest());
+			}
+			httpClientResponse.setHttpResponse(closeableHttpResponse);
+			
+			//终止请求
+			if(!httpClientResponse.isSuccessful()) {
+				httpClientRequest.getHttpRequest().abort();
+			}
+			
 			//记录重定向地址
-			if(closeableHttpResponse != null && !closeableHttpResponse.containsHeader(Constant.HTTP_HEADER_Referer)) {
+			if(httpClientRequest.getHttpContext() != null && closeableHttpResponse != null && !closeableHttpResponse.containsHeader(Constant.HTTP_HEADER_Referer)) {
 				try {
-					HttpHost httpHost = (HttpHost)httpContext.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
-					HttpUriRequest httpUriRequest = (HttpUriRequest)httpContext.getAttribute(ExecutionContext.HTTP_REQUEST);
+					HttpHost httpHost = (HttpHost)httpClientRequest.getHttpContext().getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+					HttpUriRequest httpUriRequest = (HttpUriRequest)httpClientRequest.getHttpContext().getAttribute(ExecutionContext.HTTP_REQUEST);
 					closeableHttpResponse.setHeader(Constant.HTTP_HEADER_Referer, httpUriRequest.getURI().isAbsolute() ? httpUriRequest.getURI().toString() : (httpHost.toURI() + httpUriRequest.getURI().toString()));
 				} catch (Exception e) {
 					log.error(e.getMessage(), e);
 				}
 			}
-			//判断相应状态
-			boolean statusOK = closeableHttpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
-			if(responseCallback != null) {
-				//引发回调
-				responseCallback.result(closeableHttpResponse);
-				if(!statusOK) {
-					httpRequest.abort();
-					return new Result<>(false, closeableHttpResponse.getStatusLine().toString());
-				} else {
-					return new Result<String>(true, "请求成功");
-				}
-			} else {
-				if(!statusOK) {
-					httpRequest.abort();
-					return new Result<>(false, closeableHttpResponse.getStatusLine().toString());
-				}
-				HttpEntity responeEntity = closeableHttpResponse.getEntity();
-				String data = EntityUtils.toString(responeEntity, DEFAULT_CHARSET);
-				EntityUtils.consume(responeEntity);
-				httpRequest.releaseConnection();
-				return new Result<String>(true, "请求成功", data);
+			
+			//ResponseCallback
+			if(httpClientRequest.getResponseCallback() != null) {
+				httpClientRequest.getResponseCallback().action(httpClientResponse);
 			}
+			
+			//return
+			return new Result<HttpUtils.HttpClientResponse>(httpClientResponse.isSuccessful(), closeableHttpResponse.getStatusLine().toString(), httpClientResponse);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			return new Result<>(false, e.getMessage());
 		} finally {
-			if(httpRequest != null) {
+			httpClientResponse.close();
+			httpClientRequest.close();
+		}
+	}
+	
+	/**
+	 * http 客户端请求参数
+	 *
+	 */
+	public static class HttpClientRequest implements Closeable {
+		
+		/**
+		 * http 请求对象(HttpGet/HttpPost/HttpPut/HttpDelete)
+		 */
+		private HttpRequestBase httpRequest;
+		
+		public HttpRequestBase getHttpRequest() {
+			return this.httpRequest;
+		}
+		
+		public void setHttpRequest(HttpRequestBase httpRequest) {
+			this.httpRequest = httpRequest;
+		}
+		
+		private HttpContext httpContext = new BasicHttpContext();
+		
+		public HttpContext getHttpContext() {
+			return this.httpContext;
+		}
+		
+		public void setHttpContext(HttpContext httpContext) {
+			this.httpContext = httpContext;
+		}
+		
+		private CloseableHttpClient httpClient;
+		
+		public CloseableHttpClient getHttpClient() {
+			return this.httpClient;
+		}
+		
+		public void setHttpClient(CloseableHttpClient httpClient) {
+			this.httpClient = httpClient;
+		}
+		
+		/**
+		 * 客户端构建回调
+		 */
+		private ActionCallback<HttpClientBuilder> clientBuilderCallback;
+		
+		public ActionCallback<HttpClientBuilder> getClientBuilderCallback() {
+			return clientBuilderCallback;
+		}
+		
+		public void setClientBuilderCallback(ActionCallback<HttpClientBuilder> clientBuilderCallback) {
+			this.clientBuilderCallback = clientBuilderCallback;
+		}
+		
+		/**
+		 *请求 配置构建回调
+		 */
+		private ActionCallback<RequestConfig.Builder> requestConfigBuilderCallback;
+		
+		public ActionCallback<RequestConfig.Builder> getRequestConfigBuilderCallback() {
+			return requestConfigBuilderCallback;
+		}
+		
+		public void setRequestConfigBuilderCallback(ActionCallback<RequestConfig.Builder> requestConfigBuilderCallback) {
+			this.requestConfigBuilderCallback = requestConfigBuilderCallback;
+		}
+		
+		/**
+		 * 请求回调
+		 */
+		private ActionCallback<HttpClientRequest> requestCallback;
+		
+		public ActionCallback<HttpClientRequest> getRequestCallback() {
+			return this.requestCallback;
+		}
+		
+		public void setRequestCallback(ActionCallback<HttpClientRequest> requestCallback) {
+			this.requestCallback = requestCallback;
+		}
+		
+		/**
+		 * 响应回调
+		 */
+		private ActionCallback<HttpClientResponse> responseCallback;
+		
+		public ActionCallback<HttpClientResponse> getResponseCallback() {
+			return this.responseCallback;
+		}
+		
+		public void setResponseCallback(ActionCallback<HttpClientResponse> responseCallback) {
+			this.responseCallback = responseCallback;
+		}
+		
+		/**
+		 * 初始化
+		 * @param httpRequest
+		 */
+		public HttpClientRequest(HttpRequestBase httpRequest) {
+			this.httpRequest = httpRequest;
+		}
+
+		@Override
+		public void close() {
+			//httpRequest
+			if(this.httpRequest != null) {
 				try {
-					httpRequest.releaseConnection();
-				} catch (Exception ex) {
-					ex.printStackTrace();
+					this.httpRequest.releaseConnection();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				this.httpRequest = null;
+			}
+			//httpClient
+			if(this.httpClient != null) {
+				try {
+					this.httpClient.getConnectionManager().shutdown();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				try {
+					this.httpClient.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				this.httpClient = null;
+			}
+		}
+		
+		/**
+		 * 创建 http GET 请求
+		 * @param uri
+		 * @param headers
+		 * @param params
+		 * @return
+		 */
+		public static HttpClientRequest createHttpGet(String uri, Map<String, String> headers, Map<String, String> params) {
+			try {
+				//params
+				if(params != null && params.size() > 0) {
+					URIBuilder uriBuilder = new URIBuilder(uri);
+					for(Entry<String, String> kv : params.entrySet()) {
+						uriBuilder.addParameter(kv.getKey(), kv.getValue());
+					}
+					uri = uriBuilder.toString();
+				}
+				HttpGet httpGet = new HttpGet(uri);
+				HttpClientRequest httpClientRequest = new HttpClientRequest(httpGet);
+				httpClientRequest.loadHeaders(headers);
+				return httpClientRequest;
+			} catch (Exception e) {
+				log.error("", e);
+				return null;
+			}
+		}
+		
+		/**
+		 *创建 http POST 请求
+		 * @param uri
+		 * @param headers
+		 * @param params
+		 * @return
+		 * @throws UnsupportedEncodingException
+		 */
+		public static HttpClientRequest createHttpPost(String uri, Map<String, String> headers, Map<String, String> params) {
+			List<NameValuePair> parameters = new LinkedList<>();
+			//params
+			if(params != null && params.size() > 0) {
+				for(Entry<String, String> kv : params.entrySet()) {
+					parameters.add(new BasicNameValuePair(kv.getKey(), kv.getValue()));
 				}
 			}
-			if(closeableHttpResponse != null) {
-				try {
-					closeableHttpResponse.close();
-					closeableHttpResponse = null;
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
+			try {
+				UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(parameters, DEFAULT_CHARSET);
+				return createHttpPost(uri, headers, formEntity);
+			} catch (Exception e) {
+				log.error("", e);
+				return null;
 			}
-			if(closeableHttpClient != null) {
-				//shutdown
-				try {
-					closeableHttpClient.getConnectionManager().shutdown();
-				} catch (Exception ex) {
-					ex.printStackTrace();
+		}
+		
+		/**
+		 * 创建 http POST 请求
+		 * @param uri
+		 * @param headers
+		 * @param postEntity
+		 * @return
+		 */
+		public static HttpClientRequest createHttpPost(String uri, Map<String, String> headers, HttpEntity postEntity) {
+			HttpPost httpPost = new HttpPost(uri);
+			httpPost.setEntity(postEntity);
+			HttpClientRequest httpClientRequest = new HttpClientRequest(httpPost);
+			httpClientRequest.loadHeaders(headers);
+			return httpClientRequest;
+		}
+		
+		/**
+		 * 创建 http PUT 请求
+		 * @param uri
+		 * @param headers
+		 * @param putEntity
+		 * @return
+		 */
+		public static HttpClientRequest createHttpPut(String uri, Map<String, String> headers, HttpEntity putEntity) {
+			HttpPut httpPut = new HttpPut(uri);
+			httpPut.setEntity(putEntity);
+			HttpClientRequest httpClientRequest = new HttpClientRequest(httpPut);
+			httpClientRequest.loadHeaders(headers);
+			return httpClientRequest;
+		}
+		
+		/**
+		 * 创建 http DELETE 请求
+		 * @param uri
+		 * @param headers
+		 * @param deleteEntity
+		 * @return
+		 */
+		public static HttpClientRequest createHttpDelete(String uri, Map<String, String> headers, HttpEntity deleteEntity) {
+			try {
+				HttpRequestBase httpRequest = null;
+				if(deleteEntity == null) {
+					httpRequest = new HttpDelete(uri);
+				} else {
+					httpRequest = new HttpEntityEnclosingRequestBase() {
+						@Override
+						public String getMethod() {
+							return "DELETE";
+						}
+					};
+					httpRequest.setURI(new URI(uri));
 				}
-				//close
-				try {
-					closeableHttpClient.close();
-					closeableHttpClient = null;
-				} catch (Exception ex) {
-					ex.printStackTrace();
+				HttpClientRequest httpClientRequest = new HttpClientRequest(httpRequest);
+				httpClientRequest.loadHeaders(headers);
+				return httpClientRequest;
+			} catch (Exception e) {
+				log.error("", e);
+				return null;
+			}
+		}
+		
+		/**
+		 * 加载 headers
+		 * @param headers
+		 */
+		public void loadHeaders(Map<String, String> headers) {
+			if(this.httpRequest != null) {
+				return;
+			}
+			//headers
+			if(headers != null && headers.size() > 0) {
+				for(Entry<String, String> kv : headers.entrySet()) {
+					this.httpRequest.addHeader(kv.getKey(), kv.getValue());
 				}
 			}
 		}
+	}
+	
+	/**
+	 * http 客户端响应
+	 *
+	 */
+	public static class HttpClientResponse implements Closeable {
+
+		private CloseableHttpResponse httpResponse;
+		
+		public CloseableHttpResponse getHttpResponse() {
+			return this.httpResponse;
+		}
+		
+		public void setHttpResponse(CloseableHttpResponse httpResponse) {
+			this.httpResponse = httpResponse;
+		}
+		
+		/**
+		 * 状态
+		 * @return
+		 */
+		public boolean isSuccessful() {
+			if(this.httpResponse == null) {
+				return false;
+			}
+			StatusLine statusLine = this.httpResponse.getStatusLine();
+			if(statusLine.getStatusCode() == HttpStatus.SC_OK) {
+				return true;
+			}
+			return false;
+		}
+		
+		public HttpEntity getHttpEntity() {
+			if(this.httpResponse == null) {
+				return null;
+			}
+			HttpEntity httpEntity = this.httpResponse.getEntity();
+			return httpEntity;
+		}
+		
+		@Override
+		public void close() {
+			if(this.httpResponse != null) {
+				try {
+					this.httpResponse.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				this.httpResponse = null;
+			}
+		}
+		
 	}
 	
 	/**

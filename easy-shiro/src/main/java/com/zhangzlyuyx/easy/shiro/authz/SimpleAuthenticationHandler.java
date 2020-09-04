@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authz.Permission;
-import org.apache.shiro.subject.PrincipalCollection;
 
 import com.zhangzlyuyx.easy.core.Result;
 import com.zhangzlyuyx.easy.shiro.Constant;
@@ -150,12 +149,8 @@ public abstract class SimpleAuthenticationHandler implements AuthenticationHandl
 		if(token == null) {
 			return null;
 		}
-		if(token instanceof UsernamePasswordToken) {
-			return ((UsernamePasswordToken)token).getUsername();
-		} else if(token instanceof CasToken) {
-			return ((CasToken)token).getPrincipal();
-		} else if(token instanceof AccessToken) {
-			return ((AccessToken)token).getAccessToken();
+		if(token instanceof ShiroToken) {
+			return ((ShiroToken)token).getCacheKey();
 		}
 		return token.getPrincipal();
 	}
@@ -166,7 +161,7 @@ public abstract class SimpleAuthenticationHandler implements AuthenticationHandl
 			return null;
 		}
 		if(principal instanceof ShiroPrincipal) {
-			return ((ShiroPrincipal)principal).getUserName();
+			return ((ShiroPrincipal)principal).getCacheKey();
 		}
 		return principal;
 	}
@@ -177,7 +172,7 @@ public abstract class SimpleAuthenticationHandler implements AuthenticationHandl
 			return null;
 		}
 		if(principal instanceof ShiroPrincipal) {
-			return ((ShiroPrincipal)principal).getUserName();
+			return ((ShiroPrincipal)principal).getCacheKey();
 		}
 		return principal;
 	}

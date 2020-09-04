@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.zhangzlyuyx</groupId>
 	<artifactId>easy-parent</artifactId>
-	<version>0.0.9</version>
+	<version>0.0.10</version>
 	<packaging>pom</packaging>
 	<name>easy-parent</name>
 	<description>easy-parent</description>

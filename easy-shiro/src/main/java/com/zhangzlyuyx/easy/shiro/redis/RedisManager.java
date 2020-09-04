@@ -144,7 +144,8 @@ public class RedisManager implements IRedisManager {
 			
 			if(this.isMultipleHost()) {
 				//判断是否为哨兵模式
-				if(this.masterName != null && this.masterName.length() > 0) {//哨兵模式
+				if(this.masterName != null && this.masterName.length() > 0) {
+					//哨兵模式
 					RedisSentinelManager sentinelManager = new RedisSentinelManager();
 					sentinelManager.setHost(this.host);
 					sentinelManager.setTimeout(this.timeout);
@@ -156,7 +157,8 @@ public class RedisManager implements IRedisManager {
 					}
 					this.redisManagerImpl = sentinelManager;
 					
-				} else {//集群模式
+				} else {
+					//集群模式
 					RedisClusterManager redisCluster = new RedisClusterManager();
 					redisCluster.setHost(this.host);
 					redisCluster.setTimeout(this.timeout);

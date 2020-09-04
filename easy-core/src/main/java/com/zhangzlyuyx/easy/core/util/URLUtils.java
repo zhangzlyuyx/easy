@@ -4,7 +4,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.Collection;
 
 import cn.hutool.core.util.URLUtil;
 
@@ -130,5 +129,54 @@ public class URLUtils {
 	 */
 	public static String getQuery(String url) {
 		return getURL(url).getQuery();
+	}
+	
+	/**
+	 * 获取 url 参数
+	 * @param url
+	 * @param name 参数名
+	 * @return
+	 */
+	public static String getParameter(String url, String name) {
+		String query = getQuery(url);
+		if(query == null || query.length() == 0) {
+			return null;
+		}
+		//补全&符号
+		query = "&" + query;
+		//beginIndex
+		int beginIndex = query.toLowerCase().indexOf("&" + name + "=");
+		if(beginIndex < 0) {
+			return null;
+		}
+		beginIndex = beginIndex + name.length() + 2;
+		//endIndex
+		int endIndex = query.toLowerCase().indexOf("&", beginIndex);
+		if(endIndex < 0) {
+			endIndex = query.length();
+		}
+		//value
+		String value = query.substring(beginIndex, endIndex);
+		return value;
+	}
+	
+	/**
+	 * 拼接 url 参数
+	 * @param url
+	 * @param name 参数名
+	 * @param value 参数值
+	 * @return
+	 */
+	public static String joinParameter(String url, String name, String value) {
+		StringBuilder sb = new StringBuilder(url);
+		if(url.lastIndexOf("?") < 0) {
+			sb.append("?");
+		} else {
+			sb.append("&");
+		}
+		sb.append(name);
+		sb.append("=");
+		sb.append(value);
+		return sb.toString();
 	}
 }

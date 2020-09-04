@@ -46,12 +46,32 @@ public class StringUtils {
 	}
 	
 	/**
+	 * 去除前缀
+	 * @param str
+	 * @param prefix
+	 * @return
+	 */
+	public static String trimStart(CharSequence str, CharSequence prefix){
+		return StrUtil.removePrefix(str, prefix);
+	}
+	
+	/**
 	 * 除去字符串尾部的空白
 	 * @param str 要处理的字符串
 	 * @return
 	 */
 	public static String trimEnd(CharSequence str) {
 		return StrUtil.trimEnd(str);
+	}
+	
+	/**
+	 * 去除后缀
+	 * @param str
+	 * @param suffix 
+	 * @return
+	 */
+	public static String trimEnd(CharSequence str, CharSequence suffix){
+		return StrUtil.removeSuffix(str, suffix);
 	}
 	
 	/**
@@ -102,5 +122,27 @@ public class StringUtils {
 	 */
 	public static String join(CharSequence conjunction, Object... objs) {
 		return StrUtil.join(conjunction, objs);
+	}
+	
+	/**
+	 * 左填充字符
+	 * @param str
+	 * @param minLength
+	 * @param padChar
+	 * @return
+	 */
+	public static String padLeft(CharSequence str, int minLength, char padChar){
+		return StrUtil.padPre(str, minLength, padChar);
+	}
+	
+	/**
+	 * 右填充字符
+	 * @param str
+	 * @param minLength
+	 * @param padChar
+	 * @return
+	 */
+	public static String padRight(CharSequence str, int minLength, char padChar){
+		return StrUtil.padAfter(str, minLength, padChar);
 	}
 }

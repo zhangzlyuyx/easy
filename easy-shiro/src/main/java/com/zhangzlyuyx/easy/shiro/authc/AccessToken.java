@@ -12,6 +12,7 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.springframework.util.StringUtils;
 
 import com.zhangzlyuyx.easy.core.util.ConvertUtils;
+import com.zhangzlyuyx.easy.core.util.CryptoUtils;
 import com.zhangzlyuyx.easy.shiro.Constant;
 import com.zhangzlyuyx.easy.shiro.ShiroRealm;
 import com.zhangzlyuyx.easy.shiro.ShiroToken;
@@ -51,6 +52,11 @@ public class AccessToken implements AuthenticationToken, ShiroToken {
 	 * 认证域名称
 	 */
 	private String realmName;
+	
+	/**
+	 * 缓存 key
+	 */
+	private String cacheKey;
 	
 	public AccessToken() {
 		
@@ -144,6 +150,19 @@ public class AccessToken implements AuthenticationToken, ShiroToken {
 	@Override
 	public void setRealmName(String realmName) {
 		this.realmName = realmName;
+	}
+	
+	@Override
+	public String getCacheKey() {
+		if(this.cacheKey == null || this.cacheKey.length() == 0) {
+			this.cacheKey = CryptoUtils.encodeBase64(this.getAccessToken());
+		}
+		return this.cacheKey;
+	}
+	
+	@Override
+	public void setCacheKey(String key) {
+		this.cacheKey = key;
 	}
 
 	@Override

@@ -16,12 +16,12 @@ import org.apache.shiro.web.util.SavedRequest;
 import org.apache.shiro.web.util.WebUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.zhangzlyuyx.easy.shiro.ShiroPrincipal;
 import com.zhangzlyuyx.easy.shiro.ShiroToken;
 import com.zhangzlyuyx.easy.shiro.authc.AccessToken;
+import com.zhangzlyuyx.easy.shiro.authc.GeneralToken;
+import com.zhangzlyuyx.easy.shiro.authc.UsernamePasswordToken;
 import com.zhangzlyuyx.easy.shiro.authz.AuthenticationHandler;
 import com.zhangzlyuyx.easy.shiro.authz.SimpleAuthenticationHandler;
 import com.zhangzlyuyx.easy.shiro.filter.AuthenticationFilter;
@@ -43,6 +43,41 @@ public class ShiroUtils {
 	public static Subject getSubject() {
 		Subject subject = SecurityUtils.getSubject();
 		return subject;
+	}
+	
+	/**
+	 * 执行登录
+	 * @param token
+	 * @throws AuthenticationException
+	 */
+	public static void login(AuthenticationToken token) throws AuthenticationException {
+		Subject subject = getSubject();
+		subject.login(token);
+	}
+	
+	/**
+	 * 执行注销
+	 */
+	public static void logout() {
+		Subject subject = getSubject();
+		subject.logout();
+	}
+	
+	/**
+	 * 是否已登录
+	 * @return
+	 */
+	public static boolean isLogined() {
+		return isLogined(getSubject());
+	}
+	
+	/**
+	 * 是否已登录
+	 * @param subject
+	 * @return
+	 */
+	public static boolean isLogined(Subject subject) {
+		return subject != null && (subject.isAuthenticated() || subject.isRemembered());
 	}
 	
 	/**
@@ -75,29 +110,15 @@ public class ShiroUtils {
 	}
 	
 	/**
-	 * 执行登录
-	 * @param token
-	 * @throws AuthenticationException
-	 */
-	public static void login(AuthenticationToken token) throws AuthenticationException {
-		Subject subject = getSubject();
-		subject.login(token);
-	}
-	
-	/**
-	 * 执行注销
-	 */
-	public static void logout() {
-		Subject subject = getSubject();
-		subject.logout();
-	}
-	
-	/**
 	 * get principal
 	 * @return
 	 */
 	public static Object getPrincipal() {
 		Subject subject = getSubject();
+		//判断是否已登录
+		if(!isLogined(subject)) {
+			return null;
+		}
 		return subject.getPrincipal();
 	}
 
@@ -142,6 +163,24 @@ public class ShiroUtils {
 	public static AccessToken getAccessToken() {
 		ShiroToken shiroToken = getShiroToken();
 		return (shiroToken != null && shiroToken instanceof AccessToken) ? (AccessToken)shiroToken : null;
+	}
+	
+	/**
+	 * 获取 UsernamePasswordToken
+	 * @return
+	 */
+	public static UsernamePasswordToken getUsernamePasswordToken() {
+		ShiroToken shiroToken = getShiroToken();
+		return (shiroToken != null && shiroToken instanceof UsernamePasswordToken) ? (UsernamePasswordToken)shiroToken : null;
+	}
+	
+	/**
+	 * 获取 GeneralToken
+	 * @return
+	 */
+	public static GeneralToken getGeneralToken() {
+		ShiroToken shiroToken = getShiroToken();
+		return (shiroToken != null && shiroToken instanceof GeneralToken) ? (GeneralToken)shiroToken : null;
 	}
 	
 	/**
@@ -217,7 +256,7 @@ public class ShiroUtils {
 	public static boolean isAccessAllowed(AuthenticationFilter authenticationFilter, ServletRequest request, ServletResponse response, Object mappedValue) {
 		Subject subject = getSubject();
 		//验证认证状态
-		if(!subject.isAuthenticated() && subject.isRemembered()) {
+		if(!isLogined(subject)) {
 			return false;
 		}
 		//认证主体信息

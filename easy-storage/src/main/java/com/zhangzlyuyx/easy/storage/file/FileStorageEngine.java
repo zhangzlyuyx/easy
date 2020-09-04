@@ -114,6 +114,7 @@ public class FileStorageEngine extends StorageEngine {
 			UploadResult uploadResult = new UploadResult();
 			uploadResult.setPath(uploadPath);
 			uploadResult.setMd5(CryptoUtils.encodeMd5(file));
+			uploadResult.setFileSize(file.length());
 			uploadResult.setFilename(filename);
 			return new Result<UploadResult>(true, "上传成功", uploadResult);
 		} catch (Exception e) {

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.zhangzlyuyx.easy.core.util.ConvertUtils;
+import com.zhangzlyuyx.easy.core.util.CryptoUtils;
 import com.zhangzlyuyx.easy.shiro.Constant;
 import com.zhangzlyuyx.easy.shiro.ShiroRealm;
 import com.zhangzlyuyx.easy.shiro.ShiroToken;
@@ -48,6 +49,11 @@ public class CasToken extends org.apache.shiro.cas.CasToken implements ShiroToke
 	 * 认证域名称
 	 */
 	private String realmName;
+	
+	/**
+	 * 缓存 key
+	 */
+	private String cacheKey;
 	
 	/**
 	 * cas 服务器地址前缀
@@ -146,6 +152,19 @@ public class CasToken extends org.apache.shiro.cas.CasToken implements ShiroToke
 	@Override
 	public void setRealmName(String realmName) {
 		this.realmName = realmName;
+	}
+	
+	@Override
+	public String getCacheKey() {
+		if(this.cacheKey == null || this.cacheKey.length() == 0) {
+			this.cacheKey = CryptoUtils.encodeBase64(this.getCredentials().toString());
+		}
+		return this.cacheKey;
+	}
+	
+	@Override
+	public void setCacheKey(String key) {
+		this.cacheKey = key;
 	}
 	
 	public String getCasServerUrlPrefix() {

@@ -85,6 +85,18 @@ public interface ShiroToken extends AuthenticationToken {
 	void setRealmName(String realmName);
 	
 	/**
+	 * 获取缓存 key 
+	 * @return
+	 */
+	String getCacheKey();
+	
+	/**
+	 * 设置缓存 key
+	 * @param key
+	 */
+	void setCacheKey(String key);
+	
+	/**
 	 * 执行 token 验证
 	 * @param realm realm
 	 * @param params 参数集合

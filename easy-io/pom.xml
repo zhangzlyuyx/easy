@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.zhangzlyuyx</groupId>
+		<artifactId>easy-parent</artifactId>
+		<version>0.0.10</version>
+	</parent>
+	<artifactId>easy-io</artifactId>
+	<name>easy-io</name>
+	<url>http://maven.apache.org</url>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<netty.version>4.1.51.Final</netty.version>
+	</properties>
+	<dependencies>
+		<!-- easy-core -->
+		<dependency>
+			<groupId>com.zhangzlyuyx</groupId>
+			<artifactId>easy-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- netty -->
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-all</artifactId>
+			<version>${netty.version}</version>
+		</dependency>
+
+		<!-- junit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

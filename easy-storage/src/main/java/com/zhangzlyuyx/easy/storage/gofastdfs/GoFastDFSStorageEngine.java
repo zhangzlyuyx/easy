@@ -194,6 +194,7 @@ public class GoFastDFSStorageEngine extends StorageEngine {
 			UploadResult uploadResult = new UploadResult();
 			uploadResult.setPath(json.getString("path"));
 			uploadResult.setMd5(json.getString("md5"));
+			uploadResult.setFileSize(json.getLong("size"));
 			uploadResult.setFilename(filename);
 			return new Result<UploadResult>(true, "上传成功", uploadResult);
 		} catch (Exception e) {

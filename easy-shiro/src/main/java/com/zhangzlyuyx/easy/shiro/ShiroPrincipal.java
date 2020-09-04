@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.zhangzlyuyx.easy.shiro.authc.AccessToken;
+
 /**
  * shiro 认证主体信息
  * @author zhangzlyuyx
@@ -128,5 +130,14 @@ public class ShiroPrincipal implements Serializable {
 	
 	public void setShiroToken(ShiroToken shiroToken) {
 		this.shiroToken = shiroToken;
+	}
+	
+	/**
+	 * 获取缓存 key
+	 * @return
+	 */
+	public String getCacheKey() {
+		ShiroToken token = this.getShiroToken();
+		return token != null ? token.getCacheKey() : this.getUserName();
 	}
 }

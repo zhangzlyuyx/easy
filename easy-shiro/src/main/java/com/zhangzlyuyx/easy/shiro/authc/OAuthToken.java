@@ -7,6 +7,7 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
 
 import com.zhangzlyuyx.easy.core.util.ConvertUtils;
+import com.zhangzlyuyx.easy.core.util.CryptoUtils;
 import com.zhangzlyuyx.easy.shiro.Constant;
 import com.zhangzlyuyx.easy.shiro.ShiroRealm;
 import com.zhangzlyuyx.easy.shiro.ShiroToken;
@@ -40,6 +41,11 @@ public class OAuthToken implements AuthenticationToken, ShiroToken {
 	 * 认证域名称
 	 */
 	private String realmName;
+	
+	/**
+	 * 缓存 key
+	 */
+	private String cacheKey;
 	
 	/**
 	 * 认证用户标识
@@ -112,6 +118,19 @@ public class OAuthToken implements AuthenticationToken, ShiroToken {
 	@Override
 	public void setRealmName(String realmName) {
 		this.realmName = realmName;
+	}
+	
+	@Override
+	public String getCacheKey() {
+		if(this.cacheKey == null || this.cacheKey.length() == 0) {
+			this.cacheKey = CryptoUtils.encodeBase64(this.getOpenId());
+		}
+		return this.cacheKey;
+	}
+	
+	@Override
+	public void setCacheKey(String key) {
+		this.cacheKey = key;
 	}
 	
 	public String getOpenId() {

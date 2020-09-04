@@ -24,6 +24,7 @@ public class Result<T> implements IResult<T>, Serializable {
 	 */
 	private String code;
 	
+	@Override
 	public String getCode() {
 		return code;
 	}
@@ -32,11 +33,16 @@ public class Result<T> implements IResult<T>, Serializable {
 		this.code = code;
 	}
 	
+	public void setCode(boolean success) {
+		this.code = success ? CODE_SUCCESS : CODE_ERROR;
+	}
+	
 	/**
 	 * 消息
 	 */
 	private String msg;
 	
+	@Override
 	public String getMsg() {
 		return msg;
 	}
@@ -50,6 +56,7 @@ public class Result<T> implements IResult<T>, Serializable {
 	 */
 	private T data;
 	
+	@Override
 	public T getData() {
 		return data;
 	}

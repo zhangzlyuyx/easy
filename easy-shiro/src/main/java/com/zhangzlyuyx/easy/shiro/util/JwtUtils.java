@@ -46,13 +46,19 @@ public class JwtUtils {
 	public static String createJWT(String jwtId, String subject, String issuer, long issuedAt, long ttlMillis, String base64Key) {
 		SecretKey secretKey = generalSecretKey((base64Key != null && base64Key.length() > 0) ? base64Key : JWT_BASE64_KEY);
 		JwtBuilder builder = Jwts.builder();
-		builder.setId(jwtId);//设置jti(JWT ID)：是JWT的唯一标识，根据业务需要，这个可以设置为一个不重复的值，主要用来作为一次性token,从而回避重放攻击。
-		builder.setSubject(subject);//sub(Subject)：代表这个JWT的主体，即它的所有人，这个是一个json格式的字符串，可以存放什么userid，roldid之类的，作为什么用户的唯一标志。
-		builder.setIssuer(issuer);//iss:签发人
-		builder.setIssuedAt(new Date(issuedAt));//iat: jwt的签发时间
-		builder.signWith(SignatureAlgorithm.HS512, secretKey);//设置签名使用的签名算法和签名使用的秘钥
+		//设置jti(JWT ID)：是JWT的唯一标识，根据业务需要，这个可以设置为一个不重复的值，主要用来作为一次性token,从而回避重放攻击。
+		builder.setId(jwtId);
+		//sub(Subject)：代表这个JWT的主体，即它的所有人，这个是一个json格式的字符串，可以存放什么userid，roldid之类的，作为什么用户的唯一标志。
+		builder.setSubject(subject);
+		//iss:签发人
+		builder.setIssuer(issuer);
+		//iat: jwt的签发时间
+		builder.setIssuedAt(new Date(issuedAt));
+		//设置签名使用的签名算法和签名使用的秘钥
+		builder.signWith(SignatureAlgorithm.HS512, secretKey);
 		if(ttlMillis >= 0) {
-			builder.setExpiration(new Date(issuedAt + ttlMillis));//设置过期时间
+			//设置过期时间
+			builder.setExpiration(new Date(issuedAt + ttlMillis));
 		}
 		return builder.compact();
 	}

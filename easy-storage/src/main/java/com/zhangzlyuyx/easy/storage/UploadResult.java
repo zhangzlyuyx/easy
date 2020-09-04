@@ -40,6 +40,19 @@ public class UploadResult implements Serializable {
 	}
 	
 	/**
+	 * 文件大小
+	 */
+	private Long fileSize;
+
+	public Long getFileSize() {
+		return fileSize;
+	}
+	
+	public void setFileSize(Long fileSize) {
+		this.fileSize = fileSize;
+	}
+	
+	/**
 	 * 文件 md5 值
 	 */
 	private String md5;

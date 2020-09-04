@@ -20,6 +20,7 @@ public class TreeResult implements ITreeResult, Serializable {
 	 */
 	private String id;
 	
+	@Override
 	public String getId() {
 		return id;
 	}
@@ -33,6 +34,7 @@ public class TreeResult implements ITreeResult, Serializable {
 	 */
 	private String name;
 	
+	@Override
 	public String getName() {
 		return name;
 	}
@@ -46,6 +48,7 @@ public class TreeResult implements ITreeResult, Serializable {
 	 */
 	private String pId;
 	
+	@Override
 	public String getPId() {
 		return pId;
 	}
@@ -85,6 +88,7 @@ public class TreeResult implements ITreeResult, Serializable {
 	 */
 	private List<ITreeResult> children;
 	
+	@Override
 	public List<ITreeResult> getChildren() {
 		if(this.children == null) {
 			this.children = new ArrayList<>();
