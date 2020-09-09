@@ -165,6 +165,7 @@ public class TreeResult implements ITreeResult, Serializable {
 			newTreeResult.setId(itemId.toString());
 			newTreeResult.setName(itemName.toString());
 			newTreeResult.setTag(item);
+			newTreeResult.setPId(itemPid != null ? itemPid.toString() : null);
 			
 			parse(newTreeResult, list, itemId.toString(), idField, nameField, pidField);
 			
