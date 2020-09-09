@@ -75,6 +75,7 @@ public abstract class StorageEngine {
 	 * @return
 	 */
 	public Result<UploadResult> uploadFile(final Map<String, String> headers, final Map<String, String> params, final MultipartFile file){
+		//HACK:if(file == null || !file.isEmpty()) {
 		if(file == null || !file.isEmpty()) {
 			return new Result<>(false, "需要上传文件不存在!");
 		}
