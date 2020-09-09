@@ -93,13 +93,6 @@ public interface BaseService<T> {
 	 * @param record 实体查询条件
 	 * @return
 	 */
-	int deleteByEntity(Mapper<T> mapper, T record);
-	
-	/**
-	 * 根据实体条件删除数据
-	 * @param record 实体查询条件
-	 * @return
-	 */
 	int deleteByEntity(T record);
 	
 	/**
@@ -234,6 +227,15 @@ public interface BaseService<T> {
 	 * @return
 	 */
 	T selectFirst(Map<String, Object> queryMap, String orderByClause, String... properties);
+	
+	/**
+	 * 根据唯一字段查询数据
+	 * @param column
+	 * @param value
+	 * @param properties
+	 * @return
+	 */
+	T selectByUnique(String column, Object value, String... properties);
 	
 	/**
 	 * 查询全部结果

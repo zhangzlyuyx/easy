@@ -4,6 +4,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -86,7 +87,8 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 	public DbType getDbType() {
 		try {
 			String driverName = this.getSqlConnection().getMetaData().getDriverName();
-			if(driverName.toUpperCase().indexOf("MySQL") > -1) {
+			//if(driverName.toUpperCase().indexOf("MySQL") > -1) {
+			if(driverName.toUpperCase().indexOf("MYSQL") > -1) {
 				return DbType.mysql;
 			} else if(driverName.toUpperCase().indexOf("SQL SERVER") > -1 || driverName.toUpperCase().indexOf("SQLSERVER") > -1) {
 				return DbType.sqlserver;
@@ -146,12 +148,6 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 	@Override
 	public int deleteByIds(String ids) {
 		return MapperUtils.deleteByIds(this.getMapper(), ids);
-	}
-	
-	@Override
-	@Deprecated
-	public int deleteByEntity(Mapper<T> mapper, T record) {
-		return MapperUtils.deleteByEntity(this.getMapper(), record);
 	}
 	
 	@Override
@@ -321,6 +317,13 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 		this.beforeSelect(queryMap);
 		List<T> list = MapperUtils.selectByMap(this.getMapper(), this.getEntityClass(), queryMap, 1, 1, orderByClause, properties);
 		return this.afterSelect(list.size() > 0 ? list.get(0) : null);
+	}
+	
+	@Override
+	public T selectByUnique(String column, Object value, String... properties) {
+		Map<String, Object> queryMap = new HashMap<>();
+		queryMap.put(column, value);
+		return this.selectFirst(queryMap, null, properties);
 	}
 	
 	@Override
