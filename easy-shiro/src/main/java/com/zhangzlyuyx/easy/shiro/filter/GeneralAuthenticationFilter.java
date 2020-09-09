@@ -111,8 +111,11 @@ public class GeneralAuthenticationFilter extends org.apache.shiro.web.filter.aut
 		//subject
 		Subject subject = this.getSubject(request, response);
 		//已认证状态直接允许通过
-		if(subject.isAuthenticated() || subject.isRemembered()) {
-			return true;
+		//HACK: if(subject.isAuthenticated() || subject.isRemembered()) {
+		//	return true;
+		//}
+		if(!ShiroUtils.isLogined(subject)) {
+			return false;
 		}
 		//白名单请求，且非登录请求直接允许通过
 		if(this.isPermissive(mappedValue) && !this.isLoginRequest(request, response)) {
