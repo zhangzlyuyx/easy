@@ -238,6 +238,14 @@ public interface BaseService<T> {
 	T selectByUnique(String column, Object value, String... properties);
 	
 	/**
+	 * 根据唯一字段查询记录数
+	 * @param column
+	 * @param value
+	 * @return
+	 */
+	int selectCountByUnique(String column, Object value);
+	
+	/**
 	 * 查询全部结果
 	 * @return
 	 */

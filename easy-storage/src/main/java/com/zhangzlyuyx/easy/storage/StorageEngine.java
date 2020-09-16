@@ -1,7 +1,9 @@
 package com.zhangzlyuyx.easy.storage;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
@@ -20,7 +22,7 @@ import com.zhangzlyuyx.easy.core.ResultCallback;
  * @author zhangzlyuyx
  *
  */
-public abstract class StorageEngine {
+public abstract class StorageEngine implements Closeable {
 
 	protected static final Logger log = LoggerFactory.getLogger(StorageEngine.class);
 	
@@ -130,4 +132,9 @@ public abstract class StorageEngine {
 	 * @return
 	 */
 	public abstract Result<String> downloadFile(String filePath, Map<String, String> headers, Map<String, String> params, ServletResponse response);
+
+	@Override
+	public void close() throws IOException {
+		//TODO:关闭
+	}
 }

@@ -2,18 +2,15 @@ package com.zhangzlyuyx.easy.storage.file;
 
 import java.io.File;
 
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
-import com.alibaba.fastjson.JSON;
 import com.zhangzlyuyx.easy.core.Result;
 import com.zhangzlyuyx.easy.core.ResultCallback;
 import com.zhangzlyuyx.easy.core.util.CryptoUtils;
@@ -22,8 +19,6 @@ import com.zhangzlyuyx.easy.core.util.FileUtils;
 import com.zhangzlyuyx.easy.core.util.HttpUtils;
 import com.zhangzlyuyx.easy.storage.DownloadResult;
 import com.zhangzlyuyx.easy.storage.StorageEngine;
-import com.zhangzlyuyx.easy.storage.StorageFactory;
-import com.zhangzlyuyx.easy.storage.StorageType;
 import com.zhangzlyuyx.easy.storage.UploadResult;
 
 /**
@@ -92,6 +87,10 @@ public class FileStorageEngine extends StorageEngine {
 		//scene
 		if(config.containsKey(CONFIG_SCENE)) {
 			this.setScene((String)config.get(CONFIG_SCENE));
+		}
+		//format
+		if(config.containsKey(CONFIG_FORMAT)) {
+			this.setFormat((String)config.get(CONFIG_FORMAT));
 		}
 		return super.loadConfig(config);
 	}
@@ -217,7 +216,7 @@ public class FileStorageEngine extends StorageEngine {
 			}
 		}
 		//文件
-		String randomName = FileUtils.getRandomName(FileUtils.getExtName(filename));
+		String randomName = FileUtils.getFileRandomName(FileUtils.getFileExtName(filename));
 		path = new File(path, randomName);
 		//返回文件相对路径
 		return path.getPath();
@@ -245,29 +244,5 @@ public class FileStorageEngine extends StorageEngine {
 	
 	public static void main(String[] args) throws Exception {
 		
-		Map<String, Object> config = new HashMap<>();
-		
-		config.put(FileStorageEngine.CONFIG_FILEROOT, "c:\\files");
-		
-		StorageEngine storageEngine = StorageFactory.getInstance().getStorageEngine(StorageType.File, config);
-		
-		File uploadFile = new File("c:\\windows\\system32\\license.rtf");
-		
-		Result<UploadResult> retU = storageEngine.uploadFile(null, null, uploadFile);
-		
-		System.out.println(JSON.toJSONString(retU));
-		
-		if(retU.isSuccess()) {
-			
-			File downloadFile = new File(FileUtils.getRandomName(FileUtils.getExtName(uploadFile)));
-			
-			OutputStream outputStream = new FileOutputStream(downloadFile);
-			
-			Result<String> retD = storageEngine.downloadFile(retU.getData().getPath(), null, null, outputStream, true, null);
-			
-			System.out.println(JSON.toJSONString(retD));
-			
-			System.out.println(downloadFile.getAbsolutePath());
-		}
 	}
 }

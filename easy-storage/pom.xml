@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.zhangzlyuyx</groupId>
 		<artifactId>easy-parent</artifactId>
-		<version>0.0.10</version>
+		<version>0.0.11</version>
 	</parent>
 	<artifactId>easy-storage</artifactId>
 	<name>easy-storage</name>
@@ -61,6 +61,14 @@
 			<artifactId>spring-webmvc</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		
+		<!-- aliyun-sdk-oss -->
+		<dependency>
+		    <groupId>com.aliyun.oss</groupId>
+		    <artifactId>aliyun-sdk-oss</artifactId>
+		    <version>3.8.0</version>
+		</dependency>
+		
 		<!-- junit -->
 		<dependency>
 			<groupId>junit</groupId>

@@ -75,6 +75,53 @@ public class ReflectUtils {
 	public static Object getFieldValue(Object obj, String name) {
 		return ReflectUtil.getFieldValue(obj, name);
 	}
+	
+	/**
+	 * 设置字段值
+	 * @param obj 对象
+	 * @param name 字段名
+	 * @param value 字段值
+	 * @return
+	 */
+	public static boolean setFieldValue(Object obj, String name, Object value) {
+		Field field = getField(obj.getClass(), name);
+		return setFieldValue(obj, field, value);
+	}
+	
+	/**
+	 * 设置字段值
+	 * @param obj 对象
+	 * @param field 字段
+	 * @param value 字段值
+	 * @return
+	 */
+	public static boolean setFieldValue(Object obj, Field field, Object value) {
+		if(field == null) {
+			return false;
+		}
+		try {
+			ReflectUtil.setFieldValue(obj, field, value);
+			return true;
+		} catch (Exception e) {
+			log.error("", e);
+			return false;
+		}
+	}
+	
+	/**
+	 * 创建类型实例
+	 * @param clazz
+	 * @param params
+	 * @return
+	 */
+	public static <T> T newInstance(Class<T> clazz, Object... params) {
+		try {
+			return ReflectUtil.newInstance(clazz, params);
+		} catch (Exception e) {
+			log.error("", e);
+			return null;
+		}
+	}
 
 	public static void main(String[] args) {
 

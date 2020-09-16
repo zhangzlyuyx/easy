@@ -11,27 +11,25 @@ import com.alibaba.fastjson.JSONObject;
 /**
  * map结果
  * @author zhangzlyuyx
- * @deprecated 请使用 MapResult类型
  *
  */
-@Deprecated
-public class ResultMap extends Result<Map<String, Object>> {
+public class MapResult extends Result<Map<String, Object>> {
 
 	private static final long serialVersionUID = 2267438629609811155L;
 
-	public ResultMap(boolean code, String msg) {
+	public MapResult(boolean code, String msg) {
 		super(code, msg, null);
 	}
 	
-	public ResultMap(String code, String msg) {
+	public MapResult(String code, String msg) {
 		super(code, msg, null);
 	}
 	
-	public ResultMap(boolean code, String msg, Map<String, Object> data) {
+	public MapResult(boolean code, String msg, Map<String, Object> data) {
 		super(code, msg, data);
 	}
 	
-	public ResultMap(String code, String msg, Map<String, Object> data) {
+	public MapResult(String code, String msg, Map<String, Object> data) {
 		super(code, msg, data);
 	}
 	
@@ -189,10 +187,10 @@ public class ResultMap extends Result<Map<String, Object>> {
 	 * @param jsonString
 	 * @return
 	 */
-	public static ResultMap parseJsonString(String jsonString) {
+	public static MapResult parseJsonString(String jsonString) {
 		if(jsonString == null || jsonString.length() == 0) {
 			return null;
 		}
-		return (ResultMap)JSONObject.parseObject(jsonString, ResultMap.class);
+		return (MapResult)JSONObject.parseObject(jsonString, MapResult.class);
 	}
 }

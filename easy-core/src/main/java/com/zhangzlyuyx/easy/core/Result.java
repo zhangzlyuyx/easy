@@ -2,7 +2,6 @@ package com.zhangzlyuyx.easy.core;
 
 import java.io.Serializable;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
 /**

@@ -1,7 +1,11 @@
 package com.zhangzlyuyx.easy.core.util;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
+import com.zhangzlyuyx.easy.core.ConvertCallback;
 
 import cn.hutool.core.convert.Convert;
 
@@ -118,5 +122,26 @@ public class ConvertUtils {
 	 */
 	public static Boolean toBoolean(Object value, Boolean defaultValue) {
 		return Convert.toBool(value, defaultValue);
+	}
+	
+	/**
+	 * 转换为新的List
+	 * @param inList 输入List
+	 * @param convertCallback 转换回调 
+	 * @return
+	 */
+	public static <IN, OUT> List<OUT> toList(List<IN> inList, ConvertCallback<IN, OUT> convertCallback) {
+		List<OUT> outList = new ArrayList<>();
+		if(inList != null) {
+			for(IN input : inList) {
+				if(convertCallback != null) {
+					OUT output = convertCallback.convert(input);
+					if(output != null) {
+						outList.add(output);
+					}
+				}
+			}
+		}
+		return outList;
 	}
 }

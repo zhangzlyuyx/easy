@@ -327,6 +327,13 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 	}
 	
 	@Override
+	public int selectCountByUnique(String column, Object value) {
+		Map<String, Object> queryMap = new HashMap<>();
+		queryMap.put(column, value);
+		return MapperUtils.selectCountByMap(this.getMapper(), this.getEntityClass(), queryMap);
+	}
+	
+	@Override
 	public List<T> selectAll() {
 		return this.afterSelect(MapperUtils.selectAll(this.getMapper()));
 	}
