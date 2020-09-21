@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
+import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 import org.slf4j.Logger;
@@ -133,6 +134,17 @@ public abstract class StorageEngine implements Closeable {
 	 */
 	public abstract Result<String> downloadFile(String filePath, Map<String, String> headers, Map<String, String> params, ServletResponse response);
 
+	/**
+	 * 下载文件
+	 * @param filePath
+	 * @param headers
+	 * @param params
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	public abstract Result<String> downloadFile(String filePath, Map<String, String> headers, Map<String, String> params, ServletRequest request, ServletResponse response);
+	
 	@Override
 	public void close() throws IOException {
 		//TODO:关闭

@@ -8,6 +8,7 @@ import java.net.URLEncoder;
 import java.util.Map;
 
 import javax.activation.MimetypesFileTypeMap;
+import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
@@ -157,7 +158,14 @@ public class FileStorageEngine extends StorageEngine {
 	}
 	
 	@Override
-	public Result<String> downloadFile(String filePath, Map<String, String> headers, Map<String, String> params, ServletResponse response) {
+	public Result<String> downloadFile(String filePath, Map<String, String> headers, Map<String, String> params,
+			ServletResponse response) {
+		return this.downloadFile(filePath, headers, params, null, response);
+	}
+	
+	@Override
+	public Result<String> downloadFile(String filePath, Map<String, String> headers, Map<String, String> params,
+			ServletRequest request, ServletResponse response) {
 		
 		String downloadFile = this.getDownloadFile(filePath);
 		HttpServletResponse httpResponse = (HttpServletResponse)response;

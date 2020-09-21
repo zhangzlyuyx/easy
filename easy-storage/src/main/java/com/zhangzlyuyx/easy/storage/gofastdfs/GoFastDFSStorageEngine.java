@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
@@ -18,6 +19,7 @@ import com.zhangzlyuyx.easy.core.ResultCallback;
 import com.zhangzlyuyx.easy.core.util.ConvertUtils;
 import com.zhangzlyuyx.easy.core.util.FileUtils;
 import com.zhangzlyuyx.easy.core.util.HttpUtils;
+import com.zhangzlyuyx.easy.core.util.StringUtils;
 import com.zhangzlyuyx.easy.storage.DownloadResult;
 import com.zhangzlyuyx.easy.storage.StorageEngine;
 import com.zhangzlyuyx.easy.storage.StorageFactory;
@@ -44,6 +46,12 @@ public class GoFastDFSStorageEngine extends StorageEngine {
 	public static final String CONFIG_GOOGLECODE = "googleCode";
 	
 	public static final String CONFIG_AUTHTOKEN = "authToken";
+	
+	public static final String CONFIG_DOWNLOADREDIRECT = "downloadRedirect";
+	
+	public static final String CONFIG_DOWNLOADPATH = "downloadPath";
+	
+	public static final String CONFIG_DOWNLOADURLPREFIX = "downloadUrlPrefix";
 	
 	private String server;
 	
@@ -135,7 +143,46 @@ public class GoFastDFSStorageEngine extends StorageEngine {
 	public void setAuthToken(String authToken) {
 		this.authToken = authToken;
 	}
-
+	
+	/**
+	 * 是否开启重定向下载
+	 */
+	private String downloadRedirect = "0";
+	
+	public String getDownloadRedirect() {
+		return this.downloadRedirect;
+	}
+	
+	public void setDownloadRedirect(String downloadRedirect) {
+		this.downloadRedirect = downloadRedirect;
+	}
+	
+	/**
+	 * 下载url前缀(http协议、域名、端口号)
+	 */
+	private String downloadUrlPrefix;
+	
+	public String getDownloadUrlPrefix() {
+		return downloadUrlPrefix;
+	}
+	
+	public void setDownloadUrlPrefix(String downloadUrlPrefix) {
+		this.downloadUrlPrefix = downloadUrlPrefix;
+	}
+	
+	/**
+	 * 默认下载子路径
+	 */
+	private String downloadPath;
+	
+	public String getDownloadPath() {
+		return downloadPath;
+	}
+	
+	public void setDownloadPath(String downloadPath) {
+		this.downloadPath = downloadPath;
+	}
+	
 	@Override
 	public Result<String> loadConfig(Map<String, Object> config) {
 		//server
@@ -166,6 +213,18 @@ public class GoFastDFSStorageEngine extends StorageEngine {
 		//authToken
 		if(config.containsKey(CONFIG_AUTHTOKEN)) {
 			this.setAuthToken((String)config.get(CONFIG_AUTHTOKEN));
+		}
+		//downloadRedirect
+		if(config.containsKey(CONFIG_DOWNLOADREDIRECT)) {
+			this.setDownloadRedirect((String)config.get(CONFIG_DOWNLOADREDIRECT));
+		}
+		//downloadUrlPrefix
+		if(config.containsKey(CONFIG_DOWNLOADURLPREFIX)) {
+			this.setDownloadUrlPrefix((String)config.get(CONFIG_DOWNLOADURLPREFIX));
+		}
+		//downloadPath
+		if(config.containsKey(CONFIG_DOWNLOADPATH)) {
+			this.setDownloadPath((String)config.get(CONFIG_DOWNLOADPATH));
 		}
 		return super.loadConfig(config);
 	}
@@ -239,7 +298,37 @@ public class GoFastDFSStorageEngine extends StorageEngine {
 	}
 	
 	@Override
-	public Result<String> downloadFile(String filePath, Map<String, String> headers, Map<String, String> params, ServletResponse response) {
+	public Result<String> downloadFile(String filePath, Map<String, String> headers, Map<String, String> params,
+			ServletResponse response) {
+		return this.downloadFile(filePath, headers, params, null, response);
+	}
+	
+	@Override
+	public Result<String> downloadFile(String filePath, Map<String, String> headers, Map<String, String> params,
+			ServletRequest request, ServletResponse response) {
+		
+		//是否支持重定向下载
+		if(this.downloadRedirect != null && this.downloadRedirect.equals("1")) {
+			try {
+				String downloadUrlPrefix = this.downloadUrlPrefix;
+				//默认重定向url前缀参考请求地址
+				if(StringUtils.isEmpty(downloadUrlPrefix)) {
+					downloadUrlPrefix = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+				}
+				//补充下载子路径 
+				if(!StringUtils.isEmpty(this.getDownloadPath())) {
+					downloadUrlPrefix = downloadUrlPrefix + this.getDownloadPath();
+				}
+				//下载url绝对路径
+				String downloadUrl = this.getDownloadUrl(downloadUrlPrefix, filePath);
+				//请求重定向
+				((HttpServletResponse)response).sendRedirect(downloadUrl);
+				return new Result<>(true, "");
+			} catch (Exception e) {
+				log.error(e.getMessage(), e);
+				return new Result<>(false, e.getMessage());
+			}
+		}
 		
 		String url = this.getDownloadUrl(filePath);
 		
@@ -291,7 +380,16 @@ public class GoFastDFSStorageEngine extends StorageEngine {
 	 * @return
 	 */
 	protected String getDownloadUrl(String filePath) {
-		String downloadServer = this.getServer();
+		return this.getDownloadUrl(this.getServer(), filePath);
+	}
+	
+	/**
+	 * 获取文件下载 url
+	 * @param filePath
+	 * @return
+	 */
+	protected String getDownloadUrl(String downloadUrlPrefix, String filePath) {
+		String downloadServer = downloadUrlPrefix;
 		if(!downloadServer.endsWith("/")){
 			downloadServer = downloadServer + "/";
 		}

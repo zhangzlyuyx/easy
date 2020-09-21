@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
+import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
@@ -45,6 +46,12 @@ public class AliyunOSSStorageEngine extends StorageEngine {
 	public static final String CONFIG_ACCESSKEYSECRET = "accessKeySecret";
 	
 	public static final String CONFIG_BUCKETNAME = "bucketName";
+	
+	public static final String CONFIG_DOWNLOADREDIRECT = "downloadRedirect";
+	
+	public static final String CONFIG_DOWNLOADPATH = "downloadPath";
+	
+	public static final String CONFIG_DOWNLOADURLPREFIX = "downloadUrlPrefix";
 	
 	/**
 	 * 场景(一级子目录)
@@ -138,6 +145,45 @@ public class AliyunOSSStorageEngine extends StorageEngine {
 		return this.ossClient;
 	}
 	
+	/**
+	 * 是否开启重定向下载
+	 */
+	private String downloadRedirect = "0";
+	
+	public String getDownloadRedirect() {
+		return this.downloadRedirect;
+	}
+	
+	public void setDownloadRedirect(String downloadRedirect) {
+		this.downloadRedirect = downloadRedirect;
+	}
+	
+	/**
+	 * 下载url前缀(http协议、域名、端口号)
+	 */
+	private String downloadUrlPrefix;
+	
+	public String getDownloadUrlPrefix() {
+		return downloadUrlPrefix;
+	}
+	
+	public void setDownloadUrlPrefix(String downloadUrlPrefix) {
+		this.downloadUrlPrefix = downloadUrlPrefix;
+	}
+	
+	/**
+	 * 默认下载子路径
+	 */
+	private String downloadPath;
+	
+	public String getDownloadPath() {
+		return downloadPath;
+	}
+	
+	public void setDownloadPath(String downloadPath) {
+		this.downloadPath = downloadPath;
+	}
+	
 	@Override
 	public Result<String> loadConfig(Map<String, Object> config) {
 		//endpoint
@@ -167,6 +213,18 @@ public class AliyunOSSStorageEngine extends StorageEngine {
 		//format
 		if(config.containsKey(CONFIG_FORMAT)) {
 			this.setFormat((String)config.get(CONFIG_FORMAT));
+		}
+		//downloadRedirect
+		if(config.containsKey(CONFIG_DOWNLOADREDIRECT)) {
+			this.setDownloadRedirect((String)config.get(CONFIG_DOWNLOADREDIRECT));
+		}
+		//downloadUrlPrefix
+		if(config.containsKey(CONFIG_DOWNLOADURLPREFIX)) {
+			this.setDownloadUrlPrefix((String)config.get(CONFIG_DOWNLOADURLPREFIX));
+		}
+		//downloadPath
+		if(config.containsKey(CONFIG_DOWNLOADPATH)) {
+			this.setDownloadPath((String)config.get(CONFIG_DOWNLOADPATH));
 		}
 		return super.loadConfig(config);
 	}
@@ -245,10 +303,39 @@ public class AliyunOSSStorageEngine extends StorageEngine {
 			}
 		}
 	}
+	
+	@Override
+	public Result<String> downloadFile(String filePath, Map<String, String> headers, Map<String, String> params, 
+			ServletResponse response) {
+		return this.downloadFile(filePath, headers, params, null, response);
+	}
 
 	@Override
 	public Result<String> downloadFile(String filePath, Map<String, String> headers, Map<String, String> params,
-			ServletResponse response) {
+			ServletRequest request, ServletResponse response) {
+		
+		//是否支持重定向下载
+		if(this.downloadRedirect != null && this.downloadRedirect.equals("1")) {
+			try {
+				String downloadUrlPrefix = this.downloadUrlPrefix;
+				//默认重定向url前缀参考 endpoint
+				if(StringUtils.isEmpty(downloadUrlPrefix)) {
+					downloadUrlPrefix =  request.getScheme() + "://" + this.getBucketName() + "." + this.getEndpoint();
+				}
+				//补充下载子路径 
+				if(!StringUtils.isEmpty(this.getDownloadPath())) {
+					downloadUrlPrefix = downloadUrlPrefix + this.getDownloadPath();
+				}
+				//下载url绝对路径
+				String downloadUrl = this.getDownloadUrl(downloadUrlPrefix, filePath);
+				//请求重定向
+				((HttpServletResponse)response).sendRedirect(downloadUrl);
+				return new Result<>(true, "");
+			} catch (Exception e) {
+				log.error(e.getMessage(), e);
+				return new Result<>(false, e.getMessage());
+			}
+		}
 		//获取客户端
 		OSS ossClient = this.getOSSClient();
 		if(ossClient == null) {
@@ -309,6 +396,24 @@ public class AliyunOSSStorageEngine extends StorageEngine {
 			filePath = StringUtils.trimStart(filePath, "/");
 		}
 		return filePath;
+	}
+	
+	/**
+	 * 获取文件下载url
+	 * @param downloadUrlPrefix
+	 * @param filePath
+	 * @return
+	 */
+	protected String getDownloadUrl(String downloadUrlPrefix, String filePath) {
+		String downloadServer = downloadUrlPrefix;
+		if(!downloadServer.endsWith("/")){
+			downloadServer = downloadServer + "/";
+		}
+		if(filePath.startsWith("/")){
+			filePath = filePath.substring(1);
+		}
+		String downloadUrl = downloadServer + filePath;
+		return downloadUrl;
 	}
 	
 	/**
