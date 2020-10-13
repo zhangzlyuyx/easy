@@ -17,6 +17,20 @@ public class Condition implements ICondition, Serializable, Cloneable {
 	private static final long serialVersionUID = 7365886177260173253L;
 	
 	/**
+	 * and or
+	 */
+	private String andOr = "and";
+	
+	@Override
+	public String getAndOr() {
+		return andOr;
+	}
+	
+	public void setAndOr(String andOr) {
+		this.andOr = andOr;
+	}
+	
+	/**
 	 * 字段
 	 */
 	private String field;
@@ -24,6 +38,7 @@ public class Condition implements ICondition, Serializable, Cloneable {
 	/**
 	 * 获取字段名
 	 */
+	@Override
 	public String getField() {
 		return this.field;
 	}
@@ -59,6 +74,7 @@ public class Condition implements ICondition, Serializable, Cloneable {
 	/**
 	 * 获取运算符
 	 */
+	@Override
 	public String getOperator() {
 		return this.operator;
 	}
@@ -76,6 +92,7 @@ public class Condition implements ICondition, Serializable, Cloneable {
 	 */
 	private Object value;
 	
+	@Override
 	public Object getValue() {
 		return this.value;
 	}
@@ -89,6 +106,7 @@ public class Condition implements ICondition, Serializable, Cloneable {
 	 */
 	private Object secondValue;
 	
+	@Override
 	public Object getSecondValue() {
 		return secondValue;
 	}
@@ -102,6 +120,7 @@ public class Condition implements ICondition, Serializable, Cloneable {
 	 */
 	private List<Condition> conditions;
 	
+	@Override
 	public List<Condition> getConditions() {
 		if(this.conditions == null) {
 			this.conditions = new ArrayList<Condition>();

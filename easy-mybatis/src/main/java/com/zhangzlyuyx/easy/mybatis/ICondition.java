@@ -4,6 +4,8 @@ import java.util.List;
 
 public interface ICondition {
 
+	String getAndOr();
+	
 	String getField();
 	
 	String getOperator();

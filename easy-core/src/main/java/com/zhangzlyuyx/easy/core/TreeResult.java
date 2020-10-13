@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.zhangzlyuyx.easy.core.util.ReflectUtils;
 
 /**
@@ -14,6 +17,8 @@ import com.zhangzlyuyx.easy.core.util.ReflectUtils;
 public class TreeResult implements ITreeResult, Serializable {
 
 	private static final long serialVersionUID = 7191520978252287303L;
+	
+	private static final Logger log = LoggerFactory.getLogger(TreeResult.class);
 
 	/**
 	 * id
@@ -140,6 +145,26 @@ public class TreeResult implements ITreeResult, Serializable {
 	}
 	
 	/**
+	 * list 转换为树结构
+	 * @param nextTreeResult
+	 * @param list
+	 * @param rootId
+	 * @param idField
+	 * @param nameField
+	 * @param pidField
+	 * @return
+	 */
+	public static <T> List<ITreeResult> parse(ITreeResult nextTreeResult, List<T> list, String rootId, String idField, String nameField, String pidField){
+		Class<?> clazz = nextTreeResult == null ? TreeResult.class : nextTreeResult.getClass();
+		List<?> ls = parse((ITreeResult)nextTreeResult, list, rootId, idField, nameField, pidField, clazz);
+		List<ITreeResult> array = new ArrayList<>();
+		for(Object item :ls) {
+			array.add((ITreeResult)item);
+		}
+		return array;
+	}
+	
+	/**
 	 * list 转换为树结构 
 	 * @param nextTreeResult
 	 * @param list
@@ -149,9 +174,12 @@ public class TreeResult implements ITreeResult, Serializable {
 	 * @param pidField
 	 * @return
 	 */
-	public static <T> List<TreeResult> parse(TreeResult nextTreeResult, List<T> list, String rootId, String idField, String nameField, String pidField){
+	public static <T,L> List<L> parse(ITreeResult nextTreeResult, List<T> list, String rootId, String idField, String nameField, String pidField, Class<L> clazz) {
 		
-		List<TreeResult> treeList = new ArrayList<>();
+		List<L> treeList = new ArrayList<>();
+		if(list == null) {
+			return treeList;
+		}
 		
 		for(T item : list) {
 			Object itemPid = ReflectUtils.getFieldValue(item, pidField);
@@ -161,19 +189,32 @@ public class TreeResult implements ITreeResult, Serializable {
 			Object itemId = ReflectUtils.getFieldValue(item, idField);
 			Object itemName = ReflectUtils.getFieldValue(item, nameField);
 			
-			TreeResult newTreeResult = new TreeResult();
+			ITreeResult newTreeResult = null;
+			if(clazz == null) {
+				try {
+					newTreeResult = (ITreeResult)clazz.newInstance();
+				} catch (Exception e) {
+					log.error(e.getMessage(), e);
+				}
+			}
+			if(newTreeResult == null) {
+				newTreeResult = new TreeResult();
+			}
+			
 			newTreeResult.setId(itemId.toString());
 			newTreeResult.setName(itemName.toString());
 			newTreeResult.setTag(item);
 			newTreeResult.setPId(itemPid != null ? itemPid.toString() : null);
 			
-			parse(newTreeResult, list, itemId.toString(), idField, nameField, pidField);
+			parse(newTreeResult, list, itemId.toString(), idField, nameField, pidField, clazz);
 			
-			treeList.add(newTreeResult);
+			treeList.add((L)newTreeResult);
 		}
 		
-		if(nextTreeResult != null) {
-			nextTreeResult.getChildren().addAll(treeList);
+		if(nextTreeResult != null && treeList.size() > 0) {
+			for(L l : treeList) {
+				nextTreeResult.getChildren().add((ITreeResult)l);
+			}
 		}
 		return treeList;
 	}

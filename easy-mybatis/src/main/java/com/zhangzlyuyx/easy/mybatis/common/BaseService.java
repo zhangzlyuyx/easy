@@ -7,9 +7,9 @@ import java.util.Map;
 import com.zhangzlyuyx.easy.mybatis.Condition;
 import com.zhangzlyuyx.easy.mybatis.IPageQuery;
 import com.zhangzlyuyx.easy.mybatis.IPageResult;
+import com.zhangzlyuyx.easy.mybatis.entity.JoinExample;
 import com.zhangzlyuyx.easy.mybatis.enums.DbType;
 
-import tk.mybatis.mapper.common.Mapper;
 import tk.mybatis.mapper.entity.Example;
 
 /**
@@ -369,6 +369,41 @@ public interface BaseService<T> {
 	 * @return
 	 */
 	<E> List<E> selectListBySql(String sql, Object parameter, Class<E> resultType);
+	
+	/**
+	 * 根据 joinExample 查询记录数 
+	 * @param joinExample
+	 * @return
+	 */
+	Integer selectCountByJoinExample(JoinExample joinExample);
+	
+	/**
+	 * 根据 joinExample 查询列表
+	 * @param joinExample
+	 * @param pageNo
+	 * @param pageSize
+	 * @return
+	 */
+	List<T> selectByJoinExample(JoinExample joinExample, Integer pageNo, Integer pageSize);
+	
+	/**
+	 * 根据 joinExample 查询 Map 列表
+	 * @param joinExample
+	 * @param pageNo
+	 * @param pageSize
+	 * @return
+	 */
+	List<Map<String, Object>> selectMapByJoinExample(JoinExample joinExample, Integer pageNo, Integer pageSize);
+	
+	/**
+	 * 根据 joinExample 查询分页对象列表
+	 * @param clazz
+	 * @param joinExample
+	 * @param pageNo
+	 * @param pageSize
+	 * @return
+	 */
+	<P> IPageResult<P> selectByPage(Class<P> clazz, JoinExample joinExample, Integer pageNo, Integer pageSize);
 	
 	/**
 	 * 获取服务器时间 

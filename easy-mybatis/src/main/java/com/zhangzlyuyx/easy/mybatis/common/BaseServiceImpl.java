@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.mapping.SqlCommandType;
+import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionUtils;
@@ -16,13 +17,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.zhangzlyuyx.easy.mybatis.Condition;
 import com.zhangzlyuyx.easy.mybatis.IPageQuery;
 import com.zhangzlyuyx.easy.mybatis.IPageResult;
+import com.zhangzlyuyx.easy.mybatis.PageResult;
+import com.zhangzlyuyx.easy.mybatis.entity.JoinExample;
 import com.zhangzlyuyx.easy.mybatis.enums.DbType;
 import com.zhangzlyuyx.easy.mybatis.util.MapperUtils;
 
-import tk.mybatis.mapper.common.Mapper;
 import tk.mybatis.mapper.entity.EntityTable;
 import tk.mybatis.mapper.entity.Example;
 import tk.mybatis.mapper.mapperhelper.EntityHelper;
@@ -429,6 +433,54 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 		SqlSession sqlSession = this.getSqlSession();
 		String msId = MapperUtils.getMappedStatementId(sqlSession, SqlCommandType.SELECT, sql, (parameter != null ? parameter.getClass() : null), resultType);
 		return sqlSession.selectList(msId, parameter);
+	}
+	
+	@Override
+	public Integer selectCountByJoinExample(JoinExample joinExample) {
+		return this.getMapper().selectCountByJoinExample(joinExample);
+	}
+	
+	@Override
+	public List<T> selectByJoinExample(JoinExample joinExample, Integer pageNo, Integer pageSize) {
+		if(pageNo != null && pageSize != null) {
+			int offset = (pageNo - 1) * pageSize;
+			RowBounds rowBounds = new RowBounds(offset, pageSize);
+			return this.getMapper().selectByJoinExampleAndRowBounds(joinExample, rowBounds);
+		} else {
+			return this.getMapper().selectByJoinExample(joinExample);
+		}
+	}
+	
+	@Override
+	public List<Map<String, Object>> selectMapByJoinExample(JoinExample joinExample, Integer pageNo, Integer pageSize) {
+		if(pageNo != null && pageSize != null) {
+			int offset = (pageNo - 1) * pageSize;
+			RowBounds rowBounds = new RowBounds(offset, pageSize);
+			return this.getMapper().selectMapByJoinExampleAndRowBounds(joinExample, rowBounds);
+		} else {
+			return this.getMapper().selectMapByJoinExample(joinExample);
+		}
+	}
+	
+	@Override
+	public <P> IPageResult<P> selectByPage(Class<P> clazz, JoinExample joinExample, Integer pageNo, Integer pageSize) {
+    	int count = this.getMapper().selectCountByJoinExample(joinExample);
+    	List<Map<String, Object>> list = null;
+    	if (pageNo != null && pageNo != null) {
+			int offset = (pageNo - 1) * pageSize;
+			RowBounds rowBounds = new RowBounds(offset, pageSize);
+			list = this.getMapper().selectMapByJoinExampleAndRowBounds(joinExample, rowBounds);
+		} else {
+			list = this.getMapper().selectMapByJoinExample(joinExample);
+		}
+    	PageResult<P> pageResult = new PageResult<>();
+    	pageResult.setPageNo(pageNo);
+    	pageResult.setPageSize(pageSize);
+    	pageResult.setTotal(Long.parseLong(String.valueOf(count)));
+    	for(Map<String, Object> item : list) {
+    		pageResult.getRows().add(JSON.toJavaObject((JSON)JSONObject.toJSON(item), clazz));
+    	}
+    	return pageResult;
 	}
 	
 	@Override

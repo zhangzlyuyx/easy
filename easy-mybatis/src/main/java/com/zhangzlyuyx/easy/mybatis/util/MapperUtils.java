@@ -1,6 +1,7 @@
 package com.zhangzlyuyx.easy.mybatis.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -25,14 +26,34 @@ import com.zhangzlyuyx.easy.mybatis.PageResult;
 import tk.mybatis.mapper.common.IdsMapper;
 import tk.mybatis.mapper.common.Mapper;
 import tk.mybatis.mapper.common.MySqlMapper;
+import tk.mybatis.mapper.entity.EntityTable;
 import tk.mybatis.mapper.entity.Example;
 import tk.mybatis.mapper.entity.Example.Criteria;
+import tk.mybatis.mapper.mapperhelper.EntityHelper;
+import tk.mybatis.mapper.util.StringUtil;
 
 /**
  * mapper 工具类
  *
  */
 public class MapperUtils {
+	
+	/**
+	 * 获取实体表名
+	 * @param entityClass
+	 * @return
+	 */
+	public static String tableName(Class<?> entityClass) {
+		EntityTable entityTable = EntityHelper.getEntityTable(entityClass);
+		if(entityTable == null) {
+			return null;
+		}
+		String prefix = entityTable.getPrefix();
+		if (StringUtil.isNotEmpty(prefix)) {
+            return prefix + "." + entityTable.getName();
+        }
+        return entityTable.getName();
+	}
 
 	/******************** begin insert ********************/
 	
@@ -460,8 +481,8 @@ public class MapperUtils {
 	public static Example createExample(Class<?> enityClass, List<Condition> conditions) {
 		Example example = createExample(enityClass);
 		if(conditions != null && conditions.size() > 0) {
-			Criteria criteriaNew = example.createCriteria();
 			for(int i = 0; i < conditions.size(); i++) {
+				Criteria criteriaNew = example.and();
 				Condition condition = conditions.get(i);
 				criteriaOperator(condition, example, criteriaNew); 
 			}
@@ -494,6 +515,30 @@ public class MapperUtils {
 	}
 	
 	/**
+	 * 操作符 map
+	 */
+	private static Map<String, String> operatorMap = new HashMap<String, String>() {
+		private static final long serialVersionUID = 5683714999942954274L;
+	{
+		put("=", " =");
+		put("==", " =");
+		put("<=>", " <=>");
+		put("!=", " <>");
+		put("<>", " <>");
+		put(">", " >");
+		put(">=", " >=");
+		put("<", " <");
+		put("<=", " <=");
+		put("like", " LIKE");
+		put("not like", " NOT LIKE");
+		put("in", " IN");
+		put("not in", " NOT IN");
+		put("isnull", " IS NULL");
+		put("is null", " IS NULL");
+		put("is not null", " IS NOT NULL");
+	}};
+	
+	/**
 	 * example 条件操作递归处理
 	 * @param condition
 	 * @param example
@@ -501,48 +546,160 @@ public class MapperUtils {
 	 * @return
 	 */
 	public static boolean criteriaOperator(ICondition condition, Example example, Criteria criteriaNew) {
-		if(StringUtils.isEmpty(condition.getField()) && StringUtils.isEmpty(condition.getOperator()) && condition.getValue() == null) {
+		
+		//是否为空条件
+		if(StringUtils.isEmpty(condition.getField()) && StringUtils.isEmpty(condition.getOperator()) && condition.getValue() == null && (condition.getConditions() == null || condition.getConditions().size() == 0)) {
 			return false;
 		}
-		//获取操作类型
-		String operator = !StringUtils.isEmpty(condition.getOperator()) ? condition.getOperator() : "";
-		if(operator.equalsIgnoreCase("=")){
-			criteriaNew.andEqualTo(condition.getField(), condition.getValue());
-		}else if(operator.equalsIgnoreCase("!=") || operator.equalsIgnoreCase("<>")){
-			criteriaNew.andNotEqualTo(condition.getField(), condition.getValue());
-		}else if(operator.equalsIgnoreCase("like")){
-			criteriaNew.andLike(condition.getField(), condition.getValue().toString());
-		}else if(operator.equalsIgnoreCase("not like")){
-			criteriaNew.andNotLike(condition.getField(), condition.getValue().toString());
-		}else if(operator.equalsIgnoreCase(">")){
-			criteriaNew.andGreaterThan(condition.getField(), condition.getValue());
-		}else if(operator.equalsIgnoreCase(">=")){
-			criteriaNew.andGreaterThanOrEqualTo(condition.getField(), condition.getValue());
-		}else if(operator.equalsIgnoreCase("<")){
-			criteriaNew.andLessThan(condition.getField(), condition.getValue());
-		}else if(operator.equalsIgnoreCase("<=")){
-			criteriaNew.andLessThanOrEqualTo(condition.getField(), condition.getValue());
-		}else if(operator.equalsIgnoreCase("in")){
-			criteriaNew.andIn(condition.getField(), (List<?>)condition.getValue());
-		}else if(operator.equalsIgnoreCase("not in")){
-			criteriaNew.andNotIn(condition.getField(), (List<?>)condition.getValue());
-		}else if(operator.equalsIgnoreCase("isnull") || operator.equalsIgnoreCase("is null")){
-			criteriaNew.andIsNull(condition.getField());
-		}else if(operator.equalsIgnoreCase("is not null")){
-			criteriaNew.andIsNotNull(condition.getField());
-		}else if(operator.equalsIgnoreCase("between")){
-			criteriaNew.andBetween(condition.getField(), condition.getValue(), condition.getSecondValue());
-		}  else{
-			// 其他不支持操作处理
-			if(condition.getValue() != null){
-				criteriaNew.andCondition(condition.getField(), condition.getValue());
-			}else{
-				criteriaNew.andCondition(condition.getField());
+		
+		//operator
+		String operator = !StringUtils.isEmpty(condition.getOperator()) ? condition.getOperator().toLowerCase() : "";
+		//trim
+		operator = StringUtils.trim(operator);
+		
+		//prefix
+		boolean hasPrefix = !StringUtils.isEmpty(condition.getField()) && condition.getField().contains(".");
+		
+		//and or
+		boolean isAnd = "and".equalsIgnoreCase(condition.getAndOr());
+		
+		//字段是否效
+		if(!StringUtils.isEmpty(condition.getField())) {
+			
+			//字段是否包含前缀
+			if(hasPrefix) {
+				if(operatorMap.containsKey(operator)) {
+					String opt = operatorMap.get(operator);
+					if(isAnd) {
+						if(condition.getValue() == null) {
+							criteriaNew.andCondition(condition.getField() + " " + opt);
+						} else {
+							criteriaNew.andCondition(condition.getField() + " " + opt, condition.getValue());
+						}
+					} else {
+						if(condition.getValue() == null) {
+							criteriaNew.orCondition(condition.getField() + " " + opt);
+						} else {
+							criteriaNew.orCondition(condition.getField() + " " + opt, condition.getValue());
+						}
+					}
+				} else {
+					if(isAnd) {
+						if(condition.getValue() == null) {
+							criteriaNew.andCondition(condition.getField());
+						} else {
+							criteriaNew.andCondition(condition.getField(), condition.getValue());
+						}
+					} else {
+						if(condition.getValue() == null) {
+							criteriaNew.orCondition(condition.getField());
+						} else {
+							criteriaNew.orCondition(condition.getField(), condition.getValue());
+						}
+					}
+				}
+			} else {
+				
+				if(operator.equalsIgnoreCase("=")){
+					if(isAnd) {
+						criteriaNew.andEqualTo(condition.getField(), condition.getValue());
+					} else {
+						criteriaNew.orEqualTo(condition.getField(), condition.getValue());
+					}
+				}else if(operator.equalsIgnoreCase("!=") || operator.equalsIgnoreCase("<>")){
+					if(isAnd) {
+						criteriaNew.andNotEqualTo(condition.getField(), condition.getValue());
+					} else {
+						criteriaNew.orNotEqualTo(condition.getField(), condition.getValue());
+					}
+				}else if(operator.equalsIgnoreCase("like")){
+					if(isAnd) {
+						criteriaNew.andLike(condition.getField(), condition.getValue().toString());
+					} else {
+						criteriaNew.orLike(condition.getField(), condition.getValue().toString());
+					}
+				}else if(operator.equalsIgnoreCase("not like")){
+					if(isAnd) {
+						criteriaNew.andNotLike(condition.getField(), condition.getValue().toString());
+					} else {
+						criteriaNew.orNotLike(condition.getField(), condition.getValue().toString());
+					}
+				}else if(operator.equalsIgnoreCase(">")){
+					if(isAnd) {
+						criteriaNew.andGreaterThan(condition.getField(), condition.getValue());
+					} else {
+						criteriaNew.orGreaterThan(condition.getField(), condition.getValue());
+					}
+				}else if(operator.equalsIgnoreCase(">=")){
+					if(isAnd) {
+						criteriaNew.andGreaterThanOrEqualTo(condition.getField(), condition.getValue());
+					} else {
+						criteriaNew.orGreaterThanOrEqualTo(condition.getField(), condition.getValue());
+					}
+				}else if(operator.equalsIgnoreCase("<")){
+					if(isAnd) {
+						criteriaNew.andLessThan(condition.getField(), condition.getValue());
+					} else {
+						criteriaNew.orLessThan(condition.getField(), condition.getValue());
+					}
+				}else if(operator.equalsIgnoreCase("<=")){
+					if(isAnd) {
+						criteriaNew.andLessThanOrEqualTo(condition.getField(), condition.getValue());
+					} else {
+						criteriaNew.orLessThanOrEqualTo(condition.getField(), condition.getValue());
+					}
+				}else if(operator.equalsIgnoreCase("in")){
+					if(isAnd) {
+						criteriaNew.andIn(condition.getField(), (List<?>)condition.getValue());
+					} else {
+						criteriaNew.orIn(condition.getField(), (List<?>)condition.getValue());
+					}
+					
+				}else if(operator.equalsIgnoreCase("not in")){
+					if(isAnd) {
+						criteriaNew.andNotIn(condition.getField(), (List<?>)condition.getValue());
+					} else {
+						criteriaNew.orNotIn(condition.getField(), (List<?>)condition.getValue());
+					}
+				}else if(operator.equalsIgnoreCase("isnull") || operator.equalsIgnoreCase("is null")){
+					if(isAnd) {
+						criteriaNew.andIsNull(condition.getField());
+					} else {
+						criteriaNew.orIsNull(condition.getField());
+					}
+				}else if(operator.equalsIgnoreCase("is not null")){
+					if(isAnd) {
+						criteriaNew.andIsNotNull(condition.getField());
+					} else {
+						criteriaNew.orIsNotNull(condition.getField());
+					}
+				}else if(operator.equalsIgnoreCase("between")){
+					if(isAnd) {
+						criteriaNew.andBetween(condition.getField(), condition.getValue(), condition.getSecondValue());
+					} else {
+						criteriaNew.orBetween(condition.getField(), condition.getValue(), condition.getSecondValue());
+					}
+				}  else{
+					if(condition.getValue() != null){
+						if(isAnd) {
+							criteriaNew.andCondition(condition.getField(), condition.getValue());
+						} else {
+							criteriaNew.orCondition(condition.getField(), condition.getValue());
+						}
+					}else{
+						if(isAnd) {
+							criteriaNew.andCondition(condition.getField());
+						} else {
+							criteriaNew.orCondition(condition.getField());
+						}
+					}
+				}
 			}
 		}
+		
 		//递归嵌套条件处理
 		if(condition.getConditions() != null && condition.getConditions().size() > 0) {
-			Criteria nextCriteria = example.createCriteria();
+			Criteria nextCriteria = criteriaNew;
 			for(Condition nextCondition : condition.getConditions()) {
 				criteriaOperator(nextCondition, example, nextCriteria);
 			}

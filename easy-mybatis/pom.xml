@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.zhangzlyuyx</groupId>
 		<artifactId>easy-parent</artifactId>
-		<version>0.0.11</version>
+		<version>0.0.12</version>
 	</parent>
 	<artifactId>easy-mybatis</artifactId>
 	<name>easy-mybatis</name>
@@ -73,6 +73,11 @@
 		<dependency>
 			<groupId>tk.mybatis</groupId>
 			<artifactId>mapper</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>tk.mybatis</groupId>
+			<artifactId>mapper-core</artifactId>
+			<version>1.1.5</version>
 		</dependency>
 		
 		<!-- mybatis-spring -->
