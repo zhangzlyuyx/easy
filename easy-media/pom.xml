@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.zhangzlyuyx</groupId>
 		<artifactId>easy-parent</artifactId>
-		<version>0.0.12</version>
+		<version>0.0.13</version>
 	</parent>
 	<artifactId>easy-media</artifactId>
 	<name>easy-media</name>
