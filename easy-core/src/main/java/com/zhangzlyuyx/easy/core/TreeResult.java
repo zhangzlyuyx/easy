@@ -190,6 +190,8 @@ public class TreeResult implements ITreeResult, Serializable {
 			Object itemName = ReflectUtils.getFieldValue(item, nameField);
 			
 			ITreeResult newTreeResult = null;
+			//if(clazz == null) {
+			//HACK:fix clazz
 			if(clazz == null) {
 				try {
 					newTreeResult = (ITreeResult)clazz.newInstance();

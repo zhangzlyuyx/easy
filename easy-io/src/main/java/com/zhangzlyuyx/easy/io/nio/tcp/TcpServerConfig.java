@@ -5,6 +5,8 @@ import com.zhangzlyuyx.easy.io.nio.NioConfig;
 import com.zhangzlyuyx.easy.io.nio.ServerNioHandler;
 import com.zhangzlyuyx.easy.io.nio.ServerNioListener;
 
+import io.netty.handler.logging.LogLevel;
+
 public class TcpServerConfig extends NioConfig {
 
 	private static final long serialVersionUID = 5603335667680794278L;
@@ -38,6 +40,32 @@ public class TcpServerConfig extends NioConfig {
 		this.getServerNode().setPort(serverPort);
 	}
 	
+	/**
+	 * bossGroup 线程数
+	 */
+	private int bossGroupThreads = 1;
+	
+	public int getBossGroupThreads() {
+		return bossGroupThreads;
+	}
+	
+	public void setBossGroupThreads(int bossGroupThreads) {
+		this.bossGroupThreads = bossGroupThreads;
+	}
+	
+	/**
+	 * workerGroup 线程数
+	 */
+	private int workerGroupThreads;
+	
+	public int getWorkerGroupThreads() {
+		return workerGroupThreads;
+	}
+	
+	public void setWorkerGroupThreads(int workerGroupThreads) {
+		this.workerGroupThreads = workerGroupThreads;
+	}
+	
 	private Node serverNode;
 	
 	public Node getServerNode() {
@@ -49,6 +77,19 @@ public class TcpServerConfig extends NioConfig {
 	
 	public void setServerNode(Node serverNode) {
 		this.serverNode = serverNode;
+	}
+	
+	/**
+	 * 日志级别
+	 */
+	private LogLevel logLevel;
+	
+	public LogLevel getLogLevel() {
+		return logLevel;
+	}
+	
+	public void setLogLevel(LogLevel logLevel) {
+		this.logLevel = logLevel;
 	}
 	
 	private ServerNioHandler serverNioHandler;
@@ -141,5 +182,25 @@ public class TcpServerConfig extends NioConfig {
 	
 	public void setTcpNodelay(boolean tcpNodelay) {
 		this.tcpNodelay = tcpNodelay;
+	}
+	
+	private int idleStateReaderTimeout;
+	
+	public int getIdleStateReaderTimeout() {
+		return idleStateReaderTimeout;
+	}
+	
+	public void setIdleStateReaderTimeout(int idleStateReaderTimeout) {
+		this.idleStateReaderTimeout = idleStateReaderTimeout;
+	}
+	
+	private int idleStateWriterTimeout;
+	
+	public int getIdleStateWriterTimeout() {
+		return idleStateWriterTimeout;
+	}
+	
+	public void setIdleStateWriterTimeout(int idleStateWriterTimeout) {
+		this.idleStateWriterTimeout = idleStateWriterTimeout;
 	}
 }

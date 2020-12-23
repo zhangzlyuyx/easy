@@ -41,8 +41,13 @@ public class ShiroUtils {
 	 * @return
 	 */
 	public static Subject getSubject() {
-		Subject subject = SecurityUtils.getSubject();
-		return subject;
+		try {
+			Subject subject = SecurityUtils.getSubject();
+			return subject;
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			return null;
+		}
 	}
 	
 	/**
@@ -52,6 +57,9 @@ public class ShiroUtils {
 	 */
 	public static void login(AuthenticationToken token) throws AuthenticationException {
 		Subject subject = getSubject();
+		if(subject == null) {
+			throw new AuthenticationException("shiro subject is null!");
+		}
 		subject.login(token);
 	}
 	
@@ -119,7 +127,12 @@ public class ShiroUtils {
 		if(!isLogined(subject)) {
 			return null;
 		}
-		return subject.getPrincipal();
+		try {
+			return subject.getPrincipal();
+		} catch (Exception e) {
+			log.debug(e.getMessage(), e);
+			return null;
+		}
 	}
 
 	/**

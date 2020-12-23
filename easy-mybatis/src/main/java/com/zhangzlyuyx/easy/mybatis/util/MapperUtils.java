@@ -15,7 +15,10 @@ import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.session.SqlSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.zhangzlyuyx.easy.core.util.ReflectUtils;
 import com.zhangzlyuyx.easy.core.util.StringUtils;
 import com.zhangzlyuyx.easy.mybatis.Condition;
 import com.zhangzlyuyx.easy.mybatis.ICondition;
@@ -37,6 +40,8 @@ import tk.mybatis.mapper.util.StringUtil;
  *
  */
 public class MapperUtils {
+	
+	private static final Logger log = LoggerFactory.getLogger(MapperUtils.class);
 	
 	/**
 	 * 获取实体表名
@@ -382,8 +387,13 @@ public class MapperUtils {
 			//查询数据列表
 			list = selectByExample(mapper, example, pageQuery.getPageNo(), pageQuery.getPageSize());
 			//获取总记录数
-			int count = selectCountByCondition(mapper, enityClass, pageQuery.getConditions());
-			pageResult.setTotal(Long.parseLong(String.valueOf(count)));
+			Long total = getPageHelperTotal(list);
+			if(total == null) {
+				total = Long.valueOf(selectCountByCondition(mapper, enityClass, pageQuery.getConditions()));
+			}
+			//int count = selectCountByCondition(mapper, enityClass, pageQuery.getConditions());
+			//pageResult.setTotal(Long.parseLong(String.valueOf(count)));
+			pageResult.setTotal(total);
 			pageResult.setPageNo(pageQuery.getPageNo());
 			pageResult.setPageSize(pageQuery.getPageSize());
 		} else {
@@ -735,5 +745,25 @@ public class MapperUtils {
     	MappedStatement ms = new MappedStatement.Builder(configuration, msId, sqlSource, sqlCommandType).resultMaps(resultMaps).build();
     	configuration.addMappedStatement(ms);
     	return msId;
+	}
+	
+	/**
+	 * 获取pagehelper分页总记录数
+	 * @param list
+	 * @return
+	 */
+	public static Long getPageHelperTotal(Object list) {
+		if(list == null) {
+			return null;
+		}
+		//pagehelper 分页处理
+		if(list.getClass().getTypeName().equals("com.github.pagehelper.Page")) {
+			try {
+				return (long)ReflectUtils.getFieldValue(list, "total");
+			} catch (Exception e) {
+				log.debug(e.getMessage(), e);
+			}
+		}
+		return null;
 	}
 }

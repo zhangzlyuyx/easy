@@ -3,6 +3,7 @@ package com.zhangzlyuyx.easy.mybatis.common;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -115,16 +116,29 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 		
 	}
 	
+	/**
+	 * 保存数据后处理
+	 * @param insertCount
+	 * @param record
+	 * @return
+	 */
+	protected int afterInsert(int insertCount, T... records) {
+		
+		return insertCount;
+	}
+	
 	@Override
 	public int insert(T record) {
 		this.beforeInsert(record);
-		return MapperUtils.insert(this.getMapper(), record, true);
+		int insertCount = MapperUtils.insert(this.getMapper(), record, true);
+		return this.afterInsert(insertCount, record);
 	}
 	
 	@Override
 	public int insert(T record, boolean selective) {
 		this.beforeInsert(record);
-		return MapperUtils.insert(this.getMapper(), record, selective);
+		int insertCount = MapperUtils.insert(this.getMapper(), record, selective);
+		return this.afterInsert(insertCount, record);
 	}
 	
 	@Override
@@ -464,7 +478,6 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 	
 	@Override
 	public <P> IPageResult<P> selectByPage(Class<P> clazz, JoinExample joinExample, Integer pageNo, Integer pageSize) {
-    	int count = this.getMapper().selectCountByJoinExample(joinExample);
     	List<Map<String, Object>> list = null;
     	if (pageNo != null && pageNo != null) {
 			int offset = (pageNo - 1) * pageSize;
@@ -473,10 +486,16 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 		} else {
 			list = this.getMapper().selectMapByJoinExample(joinExample);
 		}
+    	Long total = MapperUtils.getPageHelperTotal(list);
+    	if(total == null) {
+    		total = Long.valueOf(this.getMapper().selectCountByJoinExample(joinExample));
+    	}
+    	//int count = this.getMapper().selectCountByJoinExample(joinExample);
     	PageResult<P> pageResult = new PageResult<>();
     	pageResult.setPageNo(pageNo);
     	pageResult.setPageSize(pageSize);
-    	pageResult.setTotal(Long.parseLong(String.valueOf(count)));
+    	//pageResult.setTotal(Long.parseLong(String.valueOf(count)));
+    	pageResult.setTotal(total);
     	for(Map<String, Object> item : list) {
     		pageResult.getRows().add(JSON.toJavaObject((JSON)JSONObject.toJSON(item), clazz));
     	}

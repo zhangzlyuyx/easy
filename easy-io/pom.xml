@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.zhangzlyuyx</groupId>
 		<artifactId>easy-parent</artifactId>
-		<version>0.0.13</version>
+		<version>0.0.14</version>
 	</parent>
 	<artifactId>easy-io</artifactId>
 	<name>easy-io</name>
@@ -29,6 +29,12 @@
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
 			<version>${netty.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
 		</dependency>
 
 		<!-- junit -->

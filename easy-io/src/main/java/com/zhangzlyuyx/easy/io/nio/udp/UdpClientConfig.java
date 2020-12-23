@@ -11,6 +11,10 @@ public class UdpClientConfig extends UdpConfig {
 
 	private static final long serialVersionUID = -145025975055269281L;
 	
+	private static final String DEFAULT_SERVERIP = "0.0.0.0";
+	
+	private static final int DEFAULT_SERVERPORT = 0;
+	
 	/**
 	 * 本地节点
 	 */
@@ -25,11 +29,15 @@ public class UdpClientConfig extends UdpConfig {
 	}
 	
 	public UdpClientConfig() {
-		this.setClientNode(new Node("0.0.0.0", 0));
+		this.setClientNode(new Node(DEFAULT_SERVERIP, DEFAULT_SERVERPORT));
+	}
+	
+	public UdpClientConfig(int clientPort) {
+		this.getClientNode().setPort(clientPort);
 	}
 	
 	public UdpClientConfig(String serverIp, int serverPort, int timeout) {
-		this.setClientNode(new Node("0.0.0.0", 0));
+		this.setClientNode(new Node(DEFAULT_SERVERIP, DEFAULT_SERVERPORT));
 		this.setServerNode(new Node(serverIp, serverPort));
 		this.setTimeout(timeout);
 	}

@@ -3,6 +3,7 @@ package com.zhangzlyuyx.easy.spring.util;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -157,7 +158,11 @@ public class SpringUtils {
 	 * @return
 	 */
 	public static Map<String, Cookie> getCookies(HttpServletRequest request) {
-		return ServletUtil.readCookieMap(request);
+		Map<String, Cookie> cookies = ServletUtil.readCookieMap(request);
+		if(cookies == null) {
+			cookies = new HashMap<>();
+		}
+		return cookies;
 	}
 	
 	/**
