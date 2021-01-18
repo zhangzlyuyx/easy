@@ -51,6 +51,7 @@ public class JoinExampleProvider extends MapperTemplate {
         sql.append(SqlHelper.fromTable(entityClass, tableName(entityClass)));
         sql.append(exampeJoinOn());
         sql.append(exampleWhereClause(entityClass));
+        sql.append(exampleGroupBy(entityClass));
         sql.append(exampleOrderBy(entityClass));
         sql.append(SqlHelper.exampleForUpdate());
         return sql.toString();
@@ -83,6 +84,7 @@ public class JoinExampleProvider extends MapperTemplate {
         sql.append(SqlHelper.fromTable(entityClass, tableName(entityClass)));
         sql.append(exampeJoinOn());
         sql.append(exampleWhereClause(entityClass));
+        sql.append(exampleGroupBy(entityClass));
         sql.append(exampleOrderBy(entityClass));
         sql.append(SqlHelper.exampleForUpdate());
         return sql.toString();
@@ -113,6 +115,7 @@ public class JoinExampleProvider extends MapperTemplate {
         sql.append(SqlHelper.fromTable(entityClass, tableName(entityClass)));
         sql.append(exampeJoinOn());
         sql.append(exampleWhereClause(entityClass));
+        sql.append(exampleGroupBy(entityClass));
         sql.append(SqlHelper.exampleForUpdate());
         return sql.toString();
     }
@@ -227,6 +230,21 @@ public class JoinExampleProvider extends MapperTemplate {
         sql.append("  <foreach collection=\"_parameter.joinParts\" item=\"joinPart\" index=\"index\" separator=\" \">");
         sql.append("    ${joinPart.joinConnect} ${joinPart.joinTable} ON ${joinPart.joinOnClause} ");
         sql.append("  </foreach>");
+        sql.append("</if>");
+        return sql.toString();
+    }
+    
+    /**
+     * 获取 group by 语句
+     * @param entityClass
+     * @return
+     */
+    private String exampleGroupBy(Class<?> entityClass) {
+    	String tableName = SqlHelper.getDynamicTableName(entityClass, tableName(entityClass));
+    	StringBuilder sql = new StringBuilder();
+    	//group by
+        sql.append("<if test=\"_parameter != null and _parameter.groupByClause != null\">");
+        sql.append("  GROUP BY " + "<if test=\"_parameter.groupByColumnsIncludeTable and _parameter.groupByClause.indexOf('.') &lt; 0 \">" + tableName + ".</if>" + "${_parameter.groupByClause}");
         sql.append("</if>");
         return sql.toString();
     }

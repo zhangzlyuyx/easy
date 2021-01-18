@@ -68,7 +68,33 @@ public class JoinExample extends Example {
 	public void setOrderByColumnsIncludeTable(boolean orderByColumnsIncludeTable) {
 		this.orderByColumnsIncludeTable = orderByColumnsIncludeTable;
 	}
+	
+	/**
+	 * group 语句
+	 */
+	private String groupByClause;
+	
+	public String getGroupByClause() {
+		return groupByClause;
+	}
+	
+	public void setGroupByClause(String groupByClause) {
+		this.groupByClause = groupByClause;
+	}
 
+	/**
+	 * 排序字段是否包含表名
+	 */
+	protected boolean groupByColumnsIncludeTable = false;
+	
+	public boolean isGroupByColumnsIncludeTable() {
+		return groupByColumnsIncludeTable;
+	}
+	
+	public void setGroupByColumnsIncludeTable(boolean groupByColumnsIncludeTable) {
+		this.groupByColumnsIncludeTable = groupByColumnsIncludeTable;
+	}
+	
 	/**
 	 * 默认exists为true
 	 * 

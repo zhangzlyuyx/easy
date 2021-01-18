@@ -18,8 +18,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -37,15 +43,91 @@ import cn.hutool.extra.servlet.ServletUtil;
  * @author zhangzlyux
  *
  */
-public class SpringUtils {
+public class SpringUtils implements ApplicationContextAware {
 	
 	private static final Logger log = LoggerFactory.getLogger(SpringUtils.class);
 
+	/**
+	 * 当前 spring 应用上下文环境
+	 */
+	private static ApplicationContext applicationContext;
+	
+	/**
+	 * 获取当前 spring 应用上下文环境
+	 * @return
+	 */
+	public static ApplicationContext getApplicationContext() {
+		if(applicationContext == null) {
+			applicationContext = getWebApplicationContext(null);
+		}
+		return SpringUtils.applicationContext;
+	}
+	
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		SpringUtils.applicationContext = applicationContext;
+	}
+	
+	/**
+	 * 获取 bean 对象
+	 * @param requiredType 请求的bean类型
+	 * @param args 请求的bean参数
+	 * @return
+	 */
+	public static <T> T getBean(Class<T> requiredType, Object... args) {
+		if(args != null && args.length > 0) {
+			return applicationContext.getBean(requiredType, args);
+		} else {
+			return applicationContext.getBean(requiredType);
+		}
+	}
+	
+	/**
+	 * 获取 bean 对象
+	 * @param name 请求的bean名称
+	 * @param requiredType 请求的bean类型
+	 * @return
+	 */
+	public static <T> T getBean(String name, Class<T> requiredType) {
+		return (T)applicationContext.getBean(name, requiredType);
+	}
+	
+	/**
+     * 获取web请求对象
+     */
+    public static HttpServletRequest getRequest() {
+    	ServletRequestAttributes attributes = getRequestAttributes();
+        return attributes == null ? null : attributes.getRequest();
+    }
+
+    /**
+     * 获取web响应对象
+     */
+    public static HttpServletResponse getResponse() {
+    	ServletRequestAttributes attributes = getRequestAttributes();
+    	return attributes == null ? null : attributes.getResponse();
+    }
+	
+	/**
+	 * 获取web请求属性信息
+	 * @return
+	 */
+	public static ServletRequestAttributes getRequestAttributes() {
+        RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
+        return (ServletRequestAttributes)attributes;
+    }
+	
 	/**
 	 * 获取 spring webApplicationContext
 	 * @return
 	 */
 	public static WebApplicationContext getWebApplicationContext(ServletContext servletContext) {
+		if(servletContext == null) {
+			HttpServletRequest request = getRequest();
+			if(request != null) {
+				servletContext = request.getServletContext();
+			}
+		}
 		if(servletContext != null) {
 			return WebApplicationContextUtils.getWebApplicationContext(servletContext);
 		}

@@ -34,6 +34,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -79,9 +80,7 @@ public class HttpUtils {
 	public static Result<String> httpFileUpload(String url, final Map<String, String> headers, final Map<String, String> params, final String filename, final InputStream inputStream, final boolean closeStream){
 
 		//multipartEntityBuilder
-		MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
-		multipartEntityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-		multipartEntityBuilder.setCharset(Charset.forName(DEFAULT_CHARSET));
+		MultipartEntityBuilder multipartEntityBuilder = HttpClientRequest.createMultipartEntityBuilder();
 		//params
 		if(params != null && params.size() > 0) {
 			for(Entry<String, String> kv : params.entrySet()) {
@@ -638,15 +637,8 @@ public class HttpUtils {
 		 * @throws UnsupportedEncodingException
 		 */
 		public static HttpClientRequest createHttpPost(String uri, Map<String, String> headers, Map<String, String> params) {
-			List<NameValuePair> parameters = new LinkedList<>();
-			//params
-			if(params != null && params.size() > 0) {
-				for(Entry<String, String> kv : params.entrySet()) {
-					parameters.add(new BasicNameValuePair(kv.getKey(), kv.getValue()));
-				}
-			}
 			try {
-				UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(parameters, DEFAULT_CHARSET);
+				UrlEncodedFormEntity formEntity = createUrlEncodedFormEntity(params);
 				return createHttpPost(uri, headers, formEntity);
 			} catch (Exception e) {
 				log.error("", e);
@@ -715,11 +707,75 @@ public class HttpUtils {
 		}
 		
 		/**
+		 * UrlEncodedFormEntity
+		 * @param params
+		 * @return
+		 * @throws UnsupportedEncodingException
+		 */
+		public static UrlEncodedFormEntity createUrlEncodedFormEntity(Map<String, String> params) throws UnsupportedEncodingException {
+			return createUrlEncodedFormEntity(params, DEFAULT_CHARSET);
+		}
+		
+		/**
+		 * UrlEncodedFormEntity
+		 * @param params
+		 * @param charset
+		 * @return
+		 * @throws UnsupportedEncodingException
+		 */
+		public static UrlEncodedFormEntity createUrlEncodedFormEntity(Map<String, String> params, String charset) throws UnsupportedEncodingException {
+			List<NameValuePair> parameters = new LinkedList<>();
+			//params
+			if(params != null && params.size() > 0) {
+				for(Entry<String, String> kv : params.entrySet()) {
+					parameters.add(new BasicNameValuePair(kv.getKey(), kv.getValue()));
+				}
+			}
+			UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(parameters, charset);
+			return formEntity;
+		}
+		
+		/**
+		 * StringEntity
+		 * @param string
+		 * @return
+		 */
+		public static StringEntity createStringEntity(String string) {
+			return createStringEntity(string, DEFAULT_CHARSET);
+		}
+		
+		/**
+		 * StringEntity
+		 * @param string
+		 * @param charset
+		 * @return
+		 */
+		public static StringEntity createStringEntity(String string, String charset) {
+			return new StringEntity(string, charset);
+		}
+		
+		/**
+		 * MultipartEntityBuilder
+		 * @return
+		 */
+		public static MultipartEntityBuilder createMultipartEntityBuilder() {
+			MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
+			//浏览器兼容模式
+			multipartEntityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+			//请求的编码格式
+			multipartEntityBuilder.setCharset(Charset.forName(DEFAULT_CHARSET));
+			multipartEntityBuilder.setContentType(ContentType.MULTIPART_FORM_DATA);
+			return multipartEntityBuilder;
+		}
+		
+		/**
 		 * 加载 headers
 		 * @param headers
 		 */
 		public void loadHeaders(Map<String, String> headers) {
-			if(this.httpRequest != null) {
+			//if(this.httpRequest != null) {
+			//HACK:fix
+			if(this.httpRequest == null) {
 				return;
 			}
 			//headers
