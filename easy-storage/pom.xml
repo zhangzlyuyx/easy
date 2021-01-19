@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.zhangzlyuyx</groupId>
 		<artifactId>easy-parent</artifactId>
-		<version>0.0.15</version>
+		<version>0.0.16</version>
 	</parent>
 	<artifactId>easy-storage</artifactId>
 	<name>easy-storage</name>
@@ -16,6 +16,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<httpcomponents.version>4.5.10</httpcomponents.version>
+		<aliyun-sdk-oss.version>3.8.0</aliyun-sdk-oss.version>
 	</properties>
 	<dependencies>
 		<!-- easy-core -->
@@ -66,7 +67,8 @@
 		<dependency>
 		    <groupId>com.aliyun.oss</groupId>
 		    <artifactId>aliyun-sdk-oss</artifactId>
-		    <version>3.8.0</version>
+		    <version>${aliyun-sdk-oss.version}</version>
+		    <scope>provided</scope>
 		</dependency>
 		
 		<!-- junit -->

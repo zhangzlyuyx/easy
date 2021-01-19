@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.zhangzlyuyx.easy.core.Result;
+import com.zhangzlyuyx.easy.storage.aliyunoss.AliyunOSSStorageEngine;
 import com.zhangzlyuyx.easy.storage.file.FileStorageEngine;
 import com.zhangzlyuyx.easy.storage.gofastdfs.GoFastDFSStorageEngine;
 
@@ -55,7 +56,9 @@ public class StorageFactory {
 			}else if(storageType.equals(StorageType.GoFastDFS)){
 				//go fastdfs存储
 				storageEngine = new GoFastDFSStorageEngine();
-			} else {
+			} else if(storageType.equals(StorageType.AliyunOSS)) {
+				storageEngine = new AliyunOSSStorageEngine();
+			}  else {
 				//TODO:
 			}
 			//缓存存储引擎

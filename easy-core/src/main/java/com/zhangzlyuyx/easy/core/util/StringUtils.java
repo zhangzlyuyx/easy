@@ -19,12 +19,30 @@ public class StringUtils {
 	}
 	
 	/**
+	 * 判断是否为非空字符串
+	 * @param str
+	 * @return
+	 */
+	public static boolean isNotEmpty(CharSequence str) {
+		return !isEmpty(str);
+	}
+	
+	/**
 	 * 字符串是否为空白
 	 * @param str 被检测的字符串
 	 * @return
 	 */
 	public static boolean isBlank(CharSequence str) {
 		return StrUtil.isBlank(str);
+	}
+	
+	/**
+	 * 判断是否为非空白字符
+	 * @param str
+	 * @return
+	 */
+	public static boolean isNotBlank(CharSequence str) {
+		return false == isBlank(str);
 	}
 	
 	/**

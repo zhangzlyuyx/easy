@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import com.zhangzlyuyx.easy.mybatis.util.EntityUtils;
+
 import tk.mybatis.mapper.entity.Example;
+import tk.mybatis.mapper.mapperhelper.MapperHelper;
 
 /**
  * JoinExample
@@ -181,6 +184,34 @@ public class JoinExample extends Example {
 		this.selectColumns.add(propertity);
 		return this;
 	}
+	
+	/**
+	 * 获取实体表名
+	 * @param entityClass
+	 * @return
+	 */
+	public  String getTableName(Class<?> entityClass) {
+		return getTableName(entityClass, null);
+	}
+	
+	/**
+	 * 获取实体表名
+	 * @param entityClass
+	 * @param mapperHelper
+	 * @return
+	 */
+	public static String getTableName(Class<?> entityClass, MapperHelper mapperHelper) {
+        return EntityUtils.getTableName(entityClass, mapperHelper);
+	}
+	
+	/**
+	 * 获取实体字段集合
+	 * @param entityClass
+	 * @return
+	 */
+	public static List<String> getColumns(Class<?> entityClass) {
+		return EntityUtils.getColumns(entityClass);
+	}
 
 	/**
 	 * 创建默认 JoinExample 实例
@@ -191,4 +222,124 @@ public class JoinExample extends Example {
 	public static JoinExample create(Class<?> entityClass) {
 		return new JoinExample(entityClass, false);
 	}
+	
+	/************** begin and条件 **************/
+	
+	public Criteria andIsNull(Criteria criteria, String property) {
+        return criteria.andCondition(property + " IS NULL");
+    }
+
+    public Criteria andIsNotNull(Criteria criteria, String property) {
+    	return criteria.andCondition(property + " IS NOT NULL");
+    }
+
+    public Criteria andEqualTo(Criteria criteria, String property, Object value) {
+        return criteria.andCondition(property + " =",  value);
+    }
+
+    public Criteria andNotEqualTo(Criteria criteria, String property, Object value) {
+        return criteria.andCondition(property + " <>", value);
+    }
+
+    public Criteria andGreaterThan(Criteria criteria, String property, Object value) {
+        return criteria.andCondition(property + " >", value);
+    }
+
+    public Criteria andGreaterThanOrEqualTo(Criteria criteria, String property, Object value) {
+        return criteria.andCondition(property + " >=", value);
+    }
+
+    public Criteria andLessThan(Criteria criteria, String property, Object value) {
+        return criteria.andCondition(property + " <", value);
+    }
+
+    public Criteria andLessThanOrEqualTo(Criteria criteria, String property, Object value) {
+        return criteria.andCondition(property + " <=", value);
+    }
+
+    public Criteria andIn(Criteria criteria, String property, Iterable value) {
+        return criteria.andCondition(property + " IN", value);
+    }
+
+    public Criteria andNotIn(Criteria criteria, String property, Iterable value) {
+        return criteria.andCondition(property + " NOT IN", value);
+    }
+
+    public Criteria andLike(Criteria criteria, String property, String value) {
+        return criteria.andCondition(property + " LIKE", value);
+    }
+
+    public Criteria andNotLike(Criteria criteria, String property, String value) {
+        return criteria.andCondition(property + " NOT LIKE", value);
+    }
+    
+    public Criteria andCondition(Criteria criteria, String condition) {
+    	return criteria.andCondition(condition);
+    }
+    
+    public Criteria andCondition(Criteria criteria, String condition, Object value) {
+    	return criteria.andCondition(condition, value);
+    }
+    
+    /************** end and条件 **************/
+    
+	/************** begin or条件 **************/
+	
+	public Criteria orIsNull(Criteria criteria, String property) {
+        return criteria.orCondition(property + " IS NULL");
+    }
+
+    public Criteria orIsNotNull(Criteria criteria, String property) {
+    	return criteria.orCondition(property + " IS NOT NULL");
+    }
+
+    public Criteria orEqualTo(Criteria criteria, String property, Object value) {
+        return criteria.orCondition(property + " =",  value);
+    }
+
+    public Criteria orNotEqualTo(Criteria criteria, String property, Object value) {
+        return criteria.orCondition(property + " <>", value);
+    }
+
+    public Criteria orGreaterThan(Criteria criteria, String property, Object value) {
+        return criteria.orCondition(property + " >", value);
+    }
+
+    public Criteria orGreaterThanOrEqualTo(Criteria criteria, String property, Object value) {
+        return criteria.orCondition(property + " >=", value);
+    }
+
+    public Criteria orLessThan(Criteria criteria, String property, Object value) {
+        return criteria.orCondition(property + " <", value);
+    }
+
+    public Criteria orLessThanOrEqualTo(Criteria criteria, String property, Object value) {
+        return criteria.orCondition(property + " <=", value);
+    }
+
+    public Criteria orIn(Criteria criteria, String property, Iterable value) {
+        return criteria.orCondition(property + " IN", value);
+    }
+
+    public Criteria orNotIn(Criteria criteria, String property, Iterable value) {
+        return criteria.orCondition(property + " NOT IN", value);
+    }
+
+    public Criteria orLike(Criteria criteria, String property, String value) {
+        return criteria.orCondition(property + " LIKE", value);
+    }
+
+    public Criteria orNotLike(Criteria criteria, String property, String value) {
+        return criteria.orCondition(property + " NOT LIKE", value);
+    }
+    
+    public Criteria orCondition(Criteria criteria, String condition) {
+    	return criteria.orCondition(condition);
+    }
+    
+    public Criteria orCondition(Criteria criteria, String condition, Object value) {
+    	return criteria.orCondition(condition, value);
+    }
+    
+    /************** end or条件 **************/
 }

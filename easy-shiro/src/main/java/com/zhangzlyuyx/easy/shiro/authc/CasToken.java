@@ -117,6 +117,7 @@ public class CasToken extends org.apache.shiro.cas.CasToken implements ShiroToke
 		return this.getAttributes().get(key);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T getAttribute(String key, Class<T> clazz) {
 		Object value = this.getAttribute(key);

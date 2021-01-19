@@ -1,5 +1,7 @@
 package com.zhangzlyuyx.easy.shiro.util;
 
+import java.util.Set;
+
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
@@ -66,9 +68,22 @@ public class ShiroUtils {
 	/**
 	 * 执行注销
 	 */
-	public static void logout() {
+	public static boolean logout() {
 		Subject subject = getSubject();
+		return logout(subject);
+	}
+	
+	/**
+	 * 执行注销
+	 * @param subject
+	 * @return
+	 */
+	public static boolean logout(Subject subject) {
+		if(subject == null) {
+			return false;
+		}
 		subject.logout();
+		return true;
 	}
 	
 	/**
@@ -86,6 +101,16 @@ public class ShiroUtils {
 	 */
 	public static boolean isLogined(Subject subject) {
 		return subject != null && (subject.isAuthenticated() || subject.isRemembered());
+	}
+	
+	/**
+	 * 是否拥有指定角色
+	 * @param subject
+	 * @param roleIdentifier 角色标识
+	 * @return
+	 */
+	public static boolean hasRole(Subject subject, String roleIdentifier) {
+		return subject != null && subject.hasRole(roleIdentifier);
 	}
 	
 	/**
@@ -118,11 +143,20 @@ public class ShiroUtils {
 	}
 	
 	/**
-	 * get principal
+	 * 获取shiro认证主体信息
 	 * @return
 	 */
 	public static Object getPrincipal() {
 		Subject subject = getSubject();
+		return getPrincipal(subject);
+	}
+	
+	/**
+	 * 获取shiro认证主体信息
+	 * @param subject
+	 * @return
+	 */
+	public static Object getPrincipal(Subject subject) {
 		//判断是否已登录
 		if(!isLogined(subject)) {
 			return null;
@@ -134,14 +168,36 @@ public class ShiroUtils {
 			return null;
 		}
 	}
-
+	
 	/**
-	 * set principal
+	 * 设置 shiro 认证主体信息
 	 * @param principal
 	 * @param realmName
+	 * @return
 	 */
-	public static void setPrincipal(Object principal, String realmName) {
+	public static boolean setPrincipal(Object principal, String realmName) {
 		Subject subject = getSubject();
+		return setPrincipal(subject, principal, realmName);
+	}
+
+	/**
+	 * 设置 shiro 认证主体信息
+	 * @param subject
+	 * @param principal
+	 * @param realmName
+	 * @return
+	 */
+	public static boolean setPrincipal(Subject subject, Object principal, String realmName) {
+		if(subject == null) {
+			return false;
+		}
+		if(realmName == null || realmName.length() == 0) {
+			//根据原有的 Principals 获取 realmName
+			Set<String> realmNames = subject.getPrincipals().getRealmNames();
+			if(realmNames.size() > 0) {
+				realmName = subject.getPrincipals().getRealmNames().iterator().next();
+			}
+		}
 		if(realmName == null || realmName.length() == 0) {
 			Realm realm = getRealm(realmName);
 			if(realm != null) {
@@ -149,6 +205,7 @@ public class ShiroUtils {
 			}
 		}
 		subject.runAs(new SimplePrincipalCollection(principal, realmName));
+		return true;
 	}
 	
 	/**

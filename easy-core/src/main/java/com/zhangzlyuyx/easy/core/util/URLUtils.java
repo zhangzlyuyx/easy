@@ -27,6 +27,7 @@ public class URLUtils {
 	 * @param url
 	 * @return
 	 */
+	@SuppressWarnings("deprecation")
 	public static String encode(String url) {
 		return URLEncoder.encode(url);
 	}
@@ -47,6 +48,7 @@ public class URLUtils {
 	 * @param url
 	 * @return
 	 */
+	@SuppressWarnings("deprecation")
 	public static String decode(String url) {
 		return URLDecoder.decode(url);
 	}

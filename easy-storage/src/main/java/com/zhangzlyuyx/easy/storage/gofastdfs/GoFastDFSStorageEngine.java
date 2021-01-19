@@ -1,7 +1,5 @@
 package com.zhangzlyuyx.easy.storage.gofastdfs;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
@@ -11,19 +9,15 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.zhangzlyuyx.easy.core.IResult;
 import com.zhangzlyuyx.easy.core.Result;
 import com.zhangzlyuyx.easy.core.ResultCallback;
 import com.zhangzlyuyx.easy.core.util.ConvertUtils;
-import com.zhangzlyuyx.easy.core.util.FileUtils;
 import com.zhangzlyuyx.easy.core.util.HttpUtils;
 import com.zhangzlyuyx.easy.core.util.StringUtils;
 import com.zhangzlyuyx.easy.storage.DownloadResult;
 import com.zhangzlyuyx.easy.storage.StorageEngine;
-import com.zhangzlyuyx.easy.storage.StorageFactory;
-import com.zhangzlyuyx.easy.storage.StorageType;
 import com.zhangzlyuyx.easy.storage.UploadResult;
 
 /**
@@ -402,27 +396,5 @@ public class GoFastDFSStorageEngine extends StorageEngine {
 	
 	public static void main(String[] args) throws Exception {
 		
-		Map<String, Object> config = new HashMap<>();
-		
-		config.put(GoFastDFSStorageEngine.CONFIG_SERVER, "http://localhost:8080/");
-		
-		StorageEngine storageEngine = StorageFactory.getInstance().getStorageEngine(StorageType.GoFastDFS, config);
-		
-		Result<UploadResult> retU = storageEngine.uploadFile(null, null, new File("c:\\windows\\system32\\license.rtf"));
-		
-		System.out.println(JSON.toJSONString(retU));
-		
-		if(retU.isSuccess()) {
-			
-			File downloadFile = new File(FileUtils.getRandomName(FileUtils.getExtName(retU.getData().getFilename())));
-			
-			OutputStream outputStream = new FileOutputStream(downloadFile);
-			
-			Result<String> retD = storageEngine.downloadFile(retU.getData().getPath(), null, null, outputStream, true, null);
-			
-			System.out.println(JSON.toJSONString(retD));
-			
-			System.out.println(downloadFile.getAbsolutePath());
-		}
 	}
 }

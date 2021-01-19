@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.zhangzlyuyx.easy.shiro.authc.AccessToken;
-
 /**
  * shiro 认证主体信息
  * @author zhangzlyuyx

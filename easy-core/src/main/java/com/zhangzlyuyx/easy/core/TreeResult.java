@@ -174,11 +174,28 @@ public class TreeResult implements ITreeResult, Serializable {
 	 * @param pidField
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static <T,L> List<L> parse(ITreeResult nextTreeResult, List<T> list, String rootId, String idField, String nameField, String pidField, Class<L> clazz) {
 		
 		List<L> treeList = new ArrayList<>();
 		if(list == null) {
 			return treeList;
+		}
+		
+		//自动查找根节点id
+		if(rootId == null) {
+			String lastId = null;
+			for(T item : list) {
+				Object itemId = ReflectUtils.getFieldValue(item, idField);
+				Object itemPid = ReflectUtils.getFieldValue(item, pidField);
+				if(itemId == null || itemPid == null) {
+					continue;
+				}
+				if(lastId == null || itemId.toString().equalsIgnoreCase(lastId)) {
+					lastId = itemPid.toString();
+				}
+			}
+			rootId = lastId;
 		}
 		
 		for(T item : list) {
@@ -190,9 +207,7 @@ public class TreeResult implements ITreeResult, Serializable {
 			Object itemName = ReflectUtils.getFieldValue(item, nameField);
 			
 			ITreeResult newTreeResult = null;
-			//if(clazz == null) {
-			//HACK:fix clazz
-			if(clazz == null) {
+			if(clazz != null) {
 				try {
 					newTreeResult = (ITreeResult)clazz.newInstance();
 				} catch (Exception e) {
@@ -208,6 +223,7 @@ public class TreeResult implements ITreeResult, Serializable {
 			newTreeResult.setTag(item);
 			newTreeResult.setPId(itemPid != null ? itemPid.toString() : null);
 			
+			//递归
 			parse(newTreeResult, list, itemId.toString(), idField, nameField, pidField, clazz);
 			
 			treeList.add((L)newTreeResult);

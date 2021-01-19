@@ -188,6 +188,7 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 		return MapperUtils.deleteByExample(this.getMapper(), example);
 	}
 	
+	@Override
 	public int deleteBySql(String sql, Object parameter) {
 		SqlSession sqlSession = this.getSqlSession();
 		String msId = MapperUtils.getMappedStatementId(sqlSession, SqlCommandType.DELETE, sql, (parameter != null ? parameter.getClass() : null), int.class);

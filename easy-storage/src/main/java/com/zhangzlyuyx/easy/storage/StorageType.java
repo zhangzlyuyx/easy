@@ -11,10 +11,16 @@ public enum StorageType {
 	 * 本地文件存储
 	 */
 	File("file", "文件存储"),
+	
 	/**
 	 * go-fastdfs 分布式文件存储
 	 */
 	GoFastDFS("gofastdfs", "go-fastdfs 存储"),
+	
+	/**
+	 * 阿里云oss对象存储
+	 */
+	AliyunOSS("aliyunOSS", "阿里云oss对象存储"),
 	;
 	
 	private String code;

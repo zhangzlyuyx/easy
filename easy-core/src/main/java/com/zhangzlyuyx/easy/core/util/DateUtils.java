@@ -99,6 +99,14 @@ public class DateUtils {
 	}
 	
 	/**
+	 * 获取当前日历
+	 * @return
+	 */
+	public static Calendar getCalendar() {
+        return Calendar.getInstance();
+    }
+	
+	/**
 	 * 获取 calendar 对象
 	 * @param date
 	 * @return
@@ -109,6 +117,31 @@ public class DateUtils {
 			calendar.setTime(date);
 		}
 		return calendar;
+	}
+	
+	/**
+	 * 获取 calendar 对象 
+	 * @param date 日期
+	 * @param year 年份
+	 * @param month 月份(从0开始计数)
+	 * @param day 天
+	 * @return
+	 */
+	public static Calendar getCalendarOfDate(Date date, Integer year, Integer month, Integer day) {
+		return getCalendar(date, year, month, day, null, null, null, null);
+	}
+	
+	/**
+	 * 获取 calendar 对象 
+	 * @param day 天
+	 * @param hour 小时
+	 * @param minute 分钟
+	 * @param second 秒
+	 * @param millisecond 毫秒
+	 * @return
+	 */
+	public static Calendar getCalendarOfTime(Date date, Integer hour, Integer minute, Integer second, Integer millisecond) {
+		return getCalendar(date, null, null, null, hour, minute, second, millisecond);
 	}
 	
 	/**

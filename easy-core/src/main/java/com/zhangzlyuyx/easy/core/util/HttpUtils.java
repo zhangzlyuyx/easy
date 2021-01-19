@@ -773,8 +773,6 @@ public class HttpUtils {
 		 * @param headers
 		 */
 		public void loadHeaders(Map<String, String> headers) {
-			//if(this.httpRequest != null) {
-			//HACK:fix
 			if(this.httpRequest == null) {
 				return;
 			}

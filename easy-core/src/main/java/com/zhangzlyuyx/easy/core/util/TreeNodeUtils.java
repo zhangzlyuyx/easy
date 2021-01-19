@@ -61,6 +61,7 @@ public class TreeNodeUtils {
 	 * @param clazz 树节点类型
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static <T,L> List<L> parse(ITreeNode nextTreeNode, List<T> list, String rootId, String idField, String pidField, Class<L> clazz) throws Exception {
 		if(clazz == null) {
 			throw new RuntimeException("TreeNode type Not Allow Null");
@@ -68,6 +69,22 @@ public class TreeNodeUtils {
 		List<L> treeList = new ArrayList<>();
 		if(list == null) {
 			return treeList;
+		}
+		
+		//自动查找根节点id
+		if(rootId == null) {
+			String lastId = null;
+			for(T item : list) {
+				Object itemId = ReflectUtils.getFieldValue(item, idField);
+				Object itemPid = ReflectUtils.getFieldValue(item, pidField);
+				if(itemId == null || itemPid == null) {
+					continue;
+				}
+				if(lastId == null || itemId.toString().equalsIgnoreCase(lastId)) {
+					lastId = itemPid.toString();
+				}
+			}
+			rootId = lastId;
 		}
 		
 		for(T item : list) {

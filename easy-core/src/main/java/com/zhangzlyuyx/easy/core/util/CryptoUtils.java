@@ -2,21 +2,15 @@ package com.zhangzlyuyx.easy.core.util;
 
 import java.io.File;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.security.KeyPair;
 import java.util.AbstractMap;
 import java.util.Map.Entry;
 
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.text.UnicodeUtil;
 import cn.hutool.core.util.HexUtil;
-import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.crypto.asymmetric.KeyType;
 import cn.hutool.crypto.asymmetric.RSA;
-import cn.hutool.crypto.asymmetric.Sign;
 import cn.hutool.crypto.asymmetric.SignAlgorithm;
 import cn.hutool.crypto.digest.DigestAlgorithm;
 import cn.hutool.crypto.digest.Digester;
@@ -107,6 +101,37 @@ public class CryptoUtils {
 	}
 	
 	/******************** end sha1 ********************/
+	
+	/******************** begin sha256 ********************/
+	
+	/**
+	 * SHA256加密，生成16进制SHA256字符串
+	 * @param data
+	 * @return
+	 */
+	public static String encodeSha256(String data){
+		return SecureUtil.sha256(data);
+	}
+	
+	/**
+	 * SHA256加密，生成16进制SHA256字符串
+	 * @param data
+	 * @return
+	 */
+	public static String encodeSha256(InputStream data){
+		return SecureUtil.sha256(data);
+	}
+	
+	/**
+	 * SHA256加密文件，生成16进制SHA256字符串
+	 * @param dataFile
+	 * @return
+	 */
+	public static String encodeSha256(File dataFile){
+		return SecureUtil.sha256(dataFile);
+	}
+	
+	/******************** end sha256 ********************/
 	
 	/******************** begin base64 ********************/
 	
