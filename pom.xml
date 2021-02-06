@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.zhangzlyuyx</groupId>
 	<artifactId>easy-parent</artifactId>
-	<version>0.0.16</version>
+	<version>0.0.17</version>
 	<packaging>pom</packaging>
 	<name>easy-parent</name>
 	<description>easy-parent</description>
@@ -36,18 +38,44 @@
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>
 		<maven.test.skip>true</maven.test.skip>
+		<slf4j-api.version>1.7.30</slf4j-api.version>
+		<log4j.version>1.2.17</log4j.version>
 		<junit.version>3.8.1</junit.version>
 		<fastjson.version>1.2.72</fastjson.version>
 		<hutool.version>4.3.2</hutool.version>
 		<servlet.version>3.1.0</servlet.version>
 		<spring.version>4.3.24.RELEASE</spring.version>
-		<slf4j-api.version>1.7.30</slf4j-api.version>
+		<aspectj.version>1.8.14</aspectj.version>
+		<freemarker.version>2.3.28</freemarker.version>
+		<mybatis.version>3.4.6</mybatis.version>
+		<mybatis-spring.version>1.3.3</mybatis-spring.version>
+		<tk.mybatis.mapper.version>3.5.3</tk.mybatis.mapper.version>
+		<tk.mybatis.mapper-core.version>1.1.5</tk.mybatis.mapper-core.version>
+		<jsoup.version>1.13.1</jsoup.version>
+		<dom4j.version>2.1.1</dom4j.version>
+		<jedis.version>2.9.3</jedis.version>
 		<httpcomponents.version>4.5.10</httpcomponents.version>
+		<netty.version>4.1.51.Final</netty.version>
 		<t-io.version>3.6.1.v20200512-RELEASE</t-io.version>
+		<swagger-annotations.version>1.5.20</swagger-annotations.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
+			<!-- slf4j-api -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j-api.version}</version>
+			</dependency>
+
+			<!-- log4j -->
+			<dependency>
+				<groupId>log4j</groupId>
+				<artifactId>log4j</artifactId>
+				<version>${log4j.version}</version>
+			</dependency>
+
 			<!-- fastjson -->
 			<dependency>
 				<groupId>com.alibaba</groupId>
@@ -74,15 +102,53 @@
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-webmvc</artifactId>
 				<version>${spring.version}</version>
-				<scope>provided</scope>
+			</dependency>
+			
+			<!-- aspectj -->
+			<dependency>
+				<groupId>org.aspectj</groupId>
+				<artifactId>aspectjweaver</artifactId>
+				<version>${aspectj.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.aspectj</groupId>
+				<artifactId>aspectjrt</artifactId>
+				<version>${aspectj.version}</version>
 			</dependency>
 
-			<!-- slf4j-api -->
+			<!-- freemarker -->
 			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-api</artifactId>
-				<version>${slf4j-api.version}</version>
-				<scope>provided</scope>
+				<groupId>org.freemarker</groupId>
+				<artifactId>freemarker</artifactId>
+				<version>${freemarker.version}</version>
+			</dependency>
+
+			<!-- mybatis -->
+			<dependency>
+				<groupId>org.mybatis</groupId>
+				<artifactId>mybatis</artifactId>
+				<version>${mybatis.version}</version>
+			</dependency>
+
+			<!-- mybatis-spring -->
+			<dependency>
+				<groupId>org.mybatis</groupId>
+				<artifactId>mybatis-spring</artifactId>
+				<version>${mybatis-spring.version}</version>
+			</dependency>
+
+			<!-- tk.mybatis-mapper -->
+			<dependency>
+				<groupId>tk.mybatis</groupId>
+				<artifactId>mapper</artifactId>
+				<version>${tk.mybatis.mapper.version}</version>
+			</dependency>
+
+			<!-- tk.mybatis-mapper-core -->
+			<dependency>
+				<groupId>tk.mybatis</groupId>
+				<artifactId>mapper-core</artifactId>
+				<version>${tk.mybatis.mapper-core.version}</version>
 			</dependency>
 
 			<!-- junit -->
@@ -90,15 +156,67 @@
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
 				<version>${junit.version}</version>
-				<scope>test</scope>
 			</dependency>
-			
+
+			<!-- httpcomponents -->
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient</artifactId>
+				<version>${httpcomponents.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient-cache</artifactId>
+				<version>${httpcomponents.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpmime</artifactId>
+				<version>${httpcomponents.version}</version>
+			</dependency>
+
+			<!-- jsoup -->
+			<dependency>
+				<groupId>org.jsoup</groupId>
+				<artifactId>jsoup</artifactId>
+				<version>${jsoup.version}</version>
+			</dependency>
+
+			<!-- dom4j -->
+			<dependency>
+				<groupId>org.dom4j</groupId>
+				<artifactId>dom4j</artifactId>
+				<version>${dom4j.version}</version>
+			</dependency>
+
+			<!-- jedis -->
+			<dependency>
+				<groupId>redis.clients</groupId>
+				<artifactId>jedis</artifactId>
+				<version>${jedis.version}</version>
+			</dependency>
+
+			<!-- netty -->
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-all</artifactId>
+				<version>${netty.version}</version>
+			</dependency>
+
 			<!-- t-io -->
 			<dependency>
-			    <groupId>org.t-io</groupId>
-			    <artifactId>tio-core</artifactId>
-			    <version>${t-io.version}</version>
+				<groupId>org.t-io</groupId>
+				<artifactId>tio-core</artifactId>
+				<version>${t-io.version}</version>
 			</dependency>
+
+			<!-- swagger -->
+			<dependency>
+				<groupId>io.swagger</groupId>
+				<artifactId>swagger-annotations</artifactId>
+				<version>${swagger-annotations.version}</version>
+			</dependency>
+
 		</dependencies>
 	</dependencyManagement>
 
@@ -107,9 +225,10 @@
 		<module>easy-mybatis</module>
 		<module>easy-shiro</module>
 		<module>easy-spring</module>
-    	<module>easy-storage</module>
-    	<module>easy-media</module>
-  </modules>
+		<module>easy-storage</module>
+		<module>easy-media</module>
+		<module>easy-dependencies</module>
+	</modules>
 
 	<distributionManagement>
 		<snapshotRepository>

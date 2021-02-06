@@ -55,6 +55,11 @@ public class JoinPart {
 		this.joinOnClause = joinOnClause;
 	}
 	
+	public JoinPart(String joinTable, String joinOnClause) {
+		this.joinTable = joinTable;
+		this.joinOnClause = joinOnClause;
+	}
+	
 	public JoinPart(Class<?> joinEntityClass, String joinOnClause) {
 		this.joinEntityClass = joinEntityClass;
 		EntityTable entityTable = EntityHelper.getEntityTable(this.joinEntityClass);

@@ -12,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CollectionUtils {
@@ -165,7 +166,7 @@ public class CollectionUtils {
 	 * @return
 	 */
 	public static boolean isEmpty(Iterator<?> iterator) {
-		return iterator == null || false == iterator.hasNext();
+		return iterator == null || !iterator.hasNext();
 	}
 	
 	/**
@@ -174,11 +175,29 @@ public class CollectionUtils {
 	 * @return
 	 */
 	public static boolean isNotEmpty(Iterator<?> iterator) {
-		return null != iterator && iterator.hasNext();
+		return iterator != null && iterator.hasNext();
+	}
+	
+	/**
+	 * 判断 {@link Set} 是否为空
+	 * @param set
+	 * @return
+	 */
+	public static boolean isEmpty(Set<?> set) {
+		return set == null || set.size() == 0;
+	}
+	
+	/**
+	 * 判断 {@link Set} 是否为非空
+	 * @param set
+	 * @return
+	 */
+	public static boolean isNotEmpty(Set<?> set) {
+		return set != null && set.size() != 0;
 	}
 	
     /**
-     * 获取集合元素数量
+     * 获取 {@link Collection} 元素数量
      * @param c
      * @return
      */
@@ -187,7 +206,7 @@ public class CollectionUtils {
     }
     
     /**
-     * 获取Map元素数量
+     * 获取 {@link Map} 元素数量
      * @param m
      * @return
      */
@@ -196,7 +215,7 @@ public class CollectionUtils {
     }
     
     /**
-	 * 获取List元素数量
+	 * 获取 {@link List} 元素数量
 	 * @param list
 	 * @return
 	 */
@@ -215,7 +234,16 @@ public class CollectionUtils {
 	}
 	
 	/**
-	 * Array 转换为 list
+	 * 获取 {@link Set} 元素数量
+	 * @param set
+	 * @return
+	 */
+	public static int size(Set<?> set) {
+		return set != null ? set.size() : 0;
+	}
+	
+	/**
+	 * array 转换为 {@link List}
 	 * @param array
 	 * @return
 	 */
@@ -232,7 +260,17 @@ public class CollectionUtils {
 	}
 	
 	/**
-	 * Collection 转换为 List
+	 * array 转换为 {@link List}
+	 * @param array
+	 * @return
+	 */
+	@SafeVarargs
+	public static <T> List<T> asList(T... array) {
+		return toList(array);
+	}
+	
+	/**
+	 * {@link Collection} 转换为 {@link List}
 	 * @param collection
 	 * @return
 	 */
@@ -246,7 +284,7 @@ public class CollectionUtils {
 	}
 	
 	/**
-	 * Iterable 转换为 List
+	 * {@link Iterable} 转换为 {@link List}
 	 * @param iterable
 	 * @return
 	 */
@@ -258,7 +296,7 @@ public class CollectionUtils {
 	}
 	
 	/**
-	 * Iterator 转换为 List
+	 * {@link Iterator} 转换为 {@link List}
 	 * @param iter
 	 * @return
 	 */
@@ -274,7 +312,7 @@ public class CollectionUtils {
 	}
 	
 	/**
-	 * Enumeration 转 List
+	 * {@link Enumeration} 转 {@link List}
 	 * @param enumration
 	 * @return
 	 */
@@ -285,6 +323,22 @@ public class CollectionUtils {
 		List<T> list = new ArrayList<>();
 		while (enumration.hasMoreElements()) {
 			list.add(enumration.nextElement());
+		}
+		return list;
+	}
+	
+	/**
+	 * {@link Set} 转换为 {@link List}
+	 * @param set
+	 * @return
+	 */
+	public static <T> List<T> toList(Set<T> set) {
+		if(set == null || set.size() == 0) {
+			return new ArrayList<>();
+		}
+		List<T> list = new ArrayList<>(set.size());
+		for(T item : set) {
+			list.add(item);
 		}
 		return list;
 	}
@@ -301,5 +355,19 @@ public class CollectionUtils {
 		}
 		final T[] array = newArray(componentType, list.size());
 		return list.toArray(array);
+	}
+	
+	/**
+	 * {@link Set} 转换为数组
+	 * @param set
+	 * @param componentType
+	 * @return
+	 */
+	public static <T> T[] toArray(Set<T> set, Class<T> componentType) {
+		if(set == null) {
+			set = new HashSet<>();
+		}
+		final T[] array = newArray(componentType, set.size());
+		return set.toArray(array);
 	}
 }

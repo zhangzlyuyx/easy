@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestAttributes;
@@ -132,6 +133,25 @@ public class SpringUtils implements ApplicationContextAware {
 			return WebApplicationContextUtils.getWebApplicationContext(servletContext);
 		}
 		return ContextLoader.getCurrentWebApplicationContext();
+	}
+	
+	/**
+	 * 发布 spring 应用事件
+	 * @param event
+	 * @return
+	 */
+	public static boolean publishEvent(ApplicationEvent event) {
+		try {
+			ApplicationContext pub = getApplicationContext();
+			if(pub == null) {
+				return false;
+			}
+			pub.publishEvent(event);
+			return true;
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			return false;
+		}
 	}
 	
 	/**

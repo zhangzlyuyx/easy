@@ -1,5 +1,7 @@
 package com.zhangzlyuyx.easy.core.util;
 
+import java.math.BigDecimal;
+
 import cn.hutool.core.util.NumberUtil;
 
 /**
@@ -70,5 +72,63 @@ public class NumberUtils {
 	 */
 	public static boolean isDouble(String s) {
 		return NumberUtil.isDouble(s);
+	}
+	
+	/**
+	 * (多个)数值相加
+	 * @param values 数值集合
+	 * @return
+	 */
+	public static BigDecimal add(BigDecimal... values) {
+		return NumberUtil.add(values);
+	}
+	
+	/**
+	 * 数值相减
+	 * @param v1 数值1
+	 * @param v2 数值2
+	 * @return
+	 */
+	public static BigDecimal subtract(BigDecimal v1, BigDecimal v2) {
+		return NumberUtil.sub(v1, v2);
+	}
+	
+	/**
+	 * (多个)数值相乘
+	 * @param values 数值集合
+	 * @return
+	 */
+	public static BigDecimal multiply(BigDecimal... values) {
+		return NumberUtil.mul(values);
+	}
+	
+	/**
+	 * 数值相除
+	 * @param v1 数值1
+	 * @param v2 数值2
+	 * @return
+	 */
+	public static BigDecimal divide(BigDecimal v1, BigDecimal v2) {
+		return NumberUtil.div(v1, v2);
+	}
+	
+	/**
+	 * 数值四舍五入(RoundingMode.HALF_UP)
+	 * @param number 数值
+	 * @param scale 保留小数位数
+	 * @return
+	 */
+	public static BigDecimal round(BigDecimal number, int scale) {
+		return NumberUtil.round(number, scale);
+	}
+	
+	/**
+	 * 数值四舍五入(RoundingMode.HALF_UP)
+	 * @param v 数值
+	 * @param scale 保留小数位数
+	 * @return
+	 */
+	public static BigDecimal round(double v, int scale) {
+		return NumberUtil.round(v, scale);
 	}
 }

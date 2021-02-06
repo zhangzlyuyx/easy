@@ -130,6 +130,17 @@ public class JoinExample extends Example {
 
 	/**
 	 * 添加 join 部分
+	 * @param joinTable
+	 * @param joinOnClause
+	 * @return
+	 */
+	public JoinExample addJoinPart(String joinTable, String joinOnClause) {
+		this.getJoinParts().add(new JoinPart(joinTable, joinOnClause));
+		return this;
+	}
+	
+	/**
+	 * 添加 join 部分
 	 * 
 	 * @param joinEntityClass
 	 * @param joinOnClause
@@ -142,6 +153,19 @@ public class JoinExample extends Example {
 
 	/**
 	 * 添加 join 部分
+	 * @param joinConnect
+	 * @param joinTable
+	 * @param joinOnClause
+	 * @return
+	 */
+	public JoinExample addJoinPart(String joinConnect, String joinTable, String joinOnClause) {
+		JoinPart joinPart = new JoinPart(joinTable, joinOnClause);
+		joinPart.setJoinConnect(joinConnect);
+		this.getJoinParts().add(joinPart);
+		return this;
+	}
+	/**
+	 * 添加 join 部分
 	 * 
 	 * @param joinConnect
 	 * @param joinEntityClass
@@ -151,6 +175,11 @@ public class JoinExample extends Example {
 	public JoinExample addJoinPart(String joinConnect, Class<?> joinEntityClass, String joinOnClause) {
 		JoinPart joinPart = new JoinPart(joinEntityClass, joinOnClause);
 		joinPart.setJoinConnect(joinConnect);
+		this.getJoinParts().add(joinPart);
+		return this;
+	}
+	
+	public JoinExample addJoinPart(JoinPart joinPart) {
 		this.getJoinParts().add(joinPart);
 		return this;
 	}

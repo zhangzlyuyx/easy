@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.zhangzlyuyx</groupId>
 		<artifactId>easy-parent</artifactId>
-		<version>0.0.16</version>
+		<version>0.0.17</version>
 	</parent>
 	<artifactId>easy-storage</artifactId>
 	<name>easy-storage</name>
@@ -15,7 +15,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<httpcomponents.version>4.5.10</httpcomponents.version>
 		<aliyun-sdk-oss.version>3.8.0</aliyun-sdk-oss.version>
 	</properties>
 	<dependencies>
@@ -25,37 +24,38 @@
 			<artifactId>easy-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
 		<!-- slf4j-api -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		
 		<!-- httpcomponents -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>${httpcomponents.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient-cache</artifactId>
-			<version>${httpcomponents.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpmime</artifactId>
-			<version>${httpcomponents.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		
 		<!-- javax.servlet-api -->
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		
 		<!-- spring-webmvc -->
 		<dependency>
 			<groupId>org.springframework</groupId>

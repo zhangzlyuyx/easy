@@ -7,14 +7,14 @@
 	<parent>
 		<groupId>com.zhangzlyuyx</groupId>
 		<artifactId>easy-parent</artifactId>
-		<version>0.0.16</version>
+		<version>0.0.17</version>
 	</parent>
 	<artifactId>easy-io</artifactId>
 	<name>easy-io</name>
 	<url>http://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<netty.version>4.1.51.Final</netty.version>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 	<dependencies>
 		<!-- easy-core -->
@@ -28,14 +28,13 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
-			<version>${netty.version}</version>
 			<scope>provided</scope>
 		</dependency>
-		
+
+		<!-- log4j -->
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
-			<version>1.2.17</version>
 		</dependency>
 
 		<!-- junit -->
