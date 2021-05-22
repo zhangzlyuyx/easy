@@ -66,6 +66,8 @@ public class HttpUtils {
 	public static String DEFAULT_CHARSET = "UTF-8";
 	
 	public static int DEFAULT_BUFFER_SIZE = 1024;
+	
+	public static boolean DEFAULT_USESYSTEMPROPERTIES = true;
 
 	/**
 	 * http 文件上传
@@ -410,6 +412,9 @@ public class HttpUtils {
 		try {
 			//httpClientBuilder
 			HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+			if(DEFAULT_USESYSTEMPROPERTIES) {
+				httpClientBuilder = httpClientBuilder.useSystemProperties();
+			}
 			
 			//clientBuilderCallback
 			if(httpClientRequest.getClientBuilderCallback() != null) {

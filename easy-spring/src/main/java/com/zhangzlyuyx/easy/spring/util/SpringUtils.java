@@ -49,6 +49,11 @@ public class SpringUtils implements ApplicationContextAware {
 	private static final Logger log = LoggerFactory.getLogger(SpringUtils.class);
 
 	/**
+	 * 默认字符集
+	 */
+	public static String DEFAULT_CHARSET = Constant.CHARSET_UTF_8;
+	
+	/**
 	 * 当前 spring 应用上下文环境
 	 */
 	private static ApplicationContext applicationContext;
@@ -381,7 +386,7 @@ public class SpringUtils implements ApplicationContextAware {
 	 * @return
 	 */
 	public static String getParameter(HttpServletRequest request, String name) {
-		return getParameter(request, name, Constant.CHARSET_UTF_8);
+		return getParameter(request, name, DEFAULT_CHARSET);
 	}
 	
 	/**
@@ -570,7 +575,7 @@ public class SpringUtils implements ApplicationContextAware {
 	 * @param contentType 返回的类型
 	 */
 	public static void write(HttpServletResponse response, String text, String contentType) {
-		response.setCharacterEncoding(Constant.DEFAULT_CHARSET);
+		response.setCharacterEncoding(DEFAULT_CHARSET);
 		ServletUtil.write(response, text, contentType);
 	}
 	

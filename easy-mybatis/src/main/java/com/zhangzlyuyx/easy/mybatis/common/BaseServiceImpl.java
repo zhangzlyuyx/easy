@@ -3,7 +3,7 @@ package com.zhangzlyuyx.easy.mybatis.common;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.sql.Connection;
-import java.util.ArrayList;
+import java.sql.DatabaseMetaData;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -91,13 +91,14 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
 	@Override
 	public DbType getDbType() {
 		try {
-			String driverName = this.getSqlConnection().getMetaData().getDriverName();
-			//if(driverName.toUpperCase().indexOf("MySQL") > -1) {
-			if(driverName.toUpperCase().indexOf("MYSQL") > -1) {
+			DatabaseMetaData metaData = this.getSqlConnection().getMetaData();
+			String driverName = metaData.getDriverName();
+			String jdbcUrl = metaData.getURL();
+			if(driverName.toUpperCase().indexOf("MYSQL") > -1 || jdbcUrl.toLowerCase().indexOf(":mysql:") > -1 || jdbcUrl.toLowerCase().indexOf(":cobar:") > -1) {
 				return DbType.mysql;
-			} else if(driverName.toUpperCase().indexOf("SQL SERVER") > -1 || driverName.toUpperCase().indexOf("SQLSERVER") > -1) {
+			} else if(driverName.toUpperCase().indexOf("SQL SERVER") > -1 || driverName.toUpperCase().indexOf("SQLSERVER") > -1 || jdbcUrl.toLowerCase().indexOf(":sqlserver:") > -1) {
 				return DbType.sqlserver;
-			} else if(driverName.toUpperCase().indexOf("ORACLE") > -1) {
+			} else if(driverName.toUpperCase().indexOf("ORACLE") > -1 || jdbcUrl.toLowerCase().indexOf(":oracle:") > -1) {
 				return DbType.oracle;
 			} else {
 				return DbType.unkown;
