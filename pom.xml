@@ -54,7 +54,7 @@
 		<jsoup.version>1.13.1</jsoup.version>
 		<dom4j.version>2.1.1</dom4j.version>
 		<jedis.version>2.9.3</jedis.version>
-		<httpcomponents.version>4.5.10</httpcomponents.version>
+		<httpcomponents.version>4.5.13</httpcomponents.version>
 		<netty.version>4.1.51.Final</netty.version>
 		<t-io.version>3.6.1.v20200512-RELEASE</t-io.version>
 		<swagger-annotations.version>1.5.20</swagger-annotations.version>
