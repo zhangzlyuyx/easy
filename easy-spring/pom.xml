@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.zhangzlyuyx</groupId>
 		<artifactId>easy-parent</artifactId>
-		<version>0.0.18</version>
+		<version>0.0.19</version>
 	</parent>
 	<artifactId>easy-spring</artifactId>
 	<name>easy-spring</name>

@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.zhangzlyuyx</groupId>
 		<artifactId>easy-parent</artifactId>
-		<version>0.0.18</version>
+		<version>0.0.19</version>
 	</parent>
 	<artifactId>easy-dependencies</artifactId>
 	<packaging>pom</packaging>
@@ -15,6 +15,19 @@
 	</properties>
 
 	<dependencies>
+		<!-- junit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<!-- log4j -->
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+		</dependency>
+		
 		<!-- slf4j-api -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -56,6 +69,12 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 		</dependency>
+		
+		<!-- spring-tx -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+		</dependency>
 
 		<!-- mybatis -->
 		<dependency>
@@ -79,6 +98,30 @@
 		<dependency>
 			<groupId>tk.mybatis</groupId>
 			<artifactId>mapper-core</artifactId>
+		</dependency>
+		
+		<!-- shiro-core -->
+		<dependency>
+			<groupId>org.apache.shiro</groupId>
+			<artifactId>shiro-core</artifactId>
+		</dependency>
+		
+		<!-- shiro-spring -->
+		<dependency>
+			<groupId>org.apache.shiro</groupId>
+			<artifactId>shiro-spring</artifactId>
+		</dependency>
+		
+		<!-- shiro-cas -->
+		<dependency>
+			<groupId>org.apache.shiro</groupId>
+			<artifactId>shiro-cas</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>servlet-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- javax.servlet-api -->
@@ -107,5 +150,10 @@
 			<artifactId>swagger-annotations</artifactId>
 		</dependency>
 
+		<!-- captcha -->
+		<dependency>
+			<groupId>com.github.whvcse</groupId>
+			<artifactId>easy-captcha</artifactId>
+		</dependency>
 	</dependencies>
 </project>

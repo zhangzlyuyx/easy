@@ -117,6 +117,18 @@ public class FileUtils {
 	}
 	
 	/**
+	 * 删除文件或者文件夹
+	 * @param file
+	 * @return
+	 */
+	public static boolean deleteFile(File file) {
+		if(file == null || !file.exists()) {
+			return false;
+		}
+		return FileUtil.del(file);
+	}
+	
+	/**
 	 * 修改文件或目录的文件名，不变更路径，只是简单修改文件名
 	 * @param file
 	 * @param newName

@@ -1,6 +1,11 @@
 package com.zhangzlyuyx.easy.spring.util;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -10,7 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.ServletContext;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -22,6 +29,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEvent;
+import org.springframework.http.MediaType;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestAttributes;
@@ -34,7 +42,10 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import com.alibaba.fastjson.JSONObject;
 import com.zhangzlyuyx.easy.core.Constant;
+import com.zhangzlyuyx.easy.core.util.FileUtils;
+import com.zhangzlyuyx.easy.core.util.IoUtils;
 import com.zhangzlyuyx.easy.core.util.StringUtils;
+import com.zhangzlyuyx.easy.spring.vo.BaseVo;
 
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.extra.servlet.ServletUtil;
@@ -473,12 +484,24 @@ public class SpringUtils implements ApplicationContextAware {
 	 * @return
 	 */
 	public static String getRequestUrl(ServletRequest request) {
+		return getRequestUrl(request, true);
+	}
+	
+	/**
+	 * 获取请求 url
+	 * @param request 请求对象
+	 * @param includeQueryString 是否包含查询参数
+	 * @return
+	 */
+	public static String getRequestUrl(ServletRequest request, boolean includeQueryString) {
 		// 获取当前请求的 url
 		StringBuffer requestURL = ((HttpServletRequest)request).getRequestURL();
-		String queryString = ((HttpServletRequest)request).getQueryString();
-		if(queryString != null && queryString.length() > 0 && !queryString.contains("?")) {
-			requestURL.append("?");
-			requestURL.append(queryString);
+		if(includeQueryString) {
+			String queryString = ((HttpServletRequest)request).getQueryString();
+			if(queryString != null && queryString.length() > 0 && !queryString.contains("?")) {
+				requestURL.append("?");
+				requestURL.append(queryString);
+			}
 		}
 		return requestURL.toString();
 	}
@@ -491,7 +514,8 @@ public class SpringUtils implements ApplicationContextAware {
 	 */
 	public static JSONObject renderSuccess(String msg, Object data) {
 		JSONObject json = new JSONObject();
-		json.put("code", "success");
+		json.put("code", BaseVo.CODE_SUCCESS);
+		json.put("status", BaseVo.CODE_SUCCESS);
 		json.put("msg", msg);
 		if(data != null) {
 			json.put("data", data);
@@ -515,14 +539,34 @@ public class SpringUtils implements ApplicationContextAware {
 	 * @param data
 	 * @return
 	 */
-	public static JSONObject renderFail(String msg, Object data) {
+	public static JSONObject renderError(String msg, Object data) {
 		JSONObject json = new JSONObject();
-		json.put("code", "error");
+		json.put("code", BaseVo.CODE_ERROR);
+		json.put("status", BaseVo.STATUS_ERROR);
 		json.put("msg", msg);
 		if(data != null) {
 			json.put("data", data);
 		}
 		return json;
+	}
+	
+	/**
+	 * 返回json失败数据给客户端
+	 * @param response
+	 * @param msg
+	 */
+	public static void writeError(HttpServletResponse response, String msg, Object data) {
+		writeJson(response, renderError(msg, data).toJSONString());
+	}
+	
+	/**
+	 * 输出失败数据
+	 * @param msg
+	 * @param data
+	 * @return
+	 */
+	public static JSONObject renderFail(String msg, Object data) {
+		return renderError(msg, data);
 	}
 	
 	/**
@@ -542,7 +586,8 @@ public class SpringUtils implements ApplicationContextAware {
 	 */
 	public static JSONObject renderDenied(String msg, Object data) {
 		JSONObject json = new JSONObject();
-		json.put("code", "denied");
+		json.put("code", BaseVo.CODE_DENIED);
+		json.put("status", BaseVo.STATUS_DENIED);
 		json.put("msg", msg);
 		if(data != null) {
 			json.put("data", data);
@@ -594,5 +639,76 @@ public class SpringUtils implements ApplicationContextAware {
 			bufferSize = IoUtil.DEFAULT_BUFFER_SIZE;
 		}
 		ServletUtil.write(response, in, bufferSize);
+	}
+	
+	/**
+	 * 写出文件下载
+	 * @param response 响应对象
+	 * @param file 文件
+	 * @param fileName 输出文件名称
+	 * @throws IOException
+	 * @return 返回下载字节数
+	 */
+	public static long writeFile(HttpServletResponse response, File file, String fileName) throws IOException{
+		if (!file.isFile() || !file.exists()) {
+            throw new IOException("文件不存在:" + file.getAbsolutePath());
+        }
+		if(StringUtils.isEmpty(fileName)){
+			fileName = FileUtils.getFileName(file.getAbsolutePath());
+		}
+		InputStream inputStream = null;
+		try {
+			inputStream = new BufferedInputStream(new FileInputStream(file));
+			return writeFile(response, inputStream, fileName);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return -1;
+		}finally{
+			IoUtils.close(inputStream);
+		}
+	}
+	
+	/**
+	 * 写出文件下载 
+	 * @param response 响应对象
+	 * @param inputStream 输入流
+	 * @param fileName 输出文件名称
+	 * @throws IOException
+	 * @return 返回下载字节数
+	 */
+	public static long writeFile(HttpServletResponse response, InputStream inputStream, String fileName) throws IOException {
+		long downloadBytes = 0;
+		if(StringUtils.isEmpty(fileName)){
+			throw new IOException("下载的文件名称不能为空!");
+		}
+		String contentType = new MimetypesFileTypeMap().getContentType(fileName);
+		if(contentType == null || contentType.length() == 0){
+			contentType = MediaType.APPLICATION_OCTET_STREAM + ";charset=UTF-8";
+		}
+		response.reset();
+		response.setContentType(contentType);
+		response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, "utf-8"));
+		try {
+			response.setHeader("Content-Length", String.valueOf(inputStream.available()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		try {
+			ServletOutputStream outputStream = response.getOutputStream();
+			byte[] buffer = new byte[1024 * 10];
+			int readBytes = 0;
+			while((readBytes = inputStream.read(buffer)) > 0){
+				outputStream.write(buffer, 0, readBytes);
+				downloadBytes+=readBytes;
+			}
+			outputStream.flush();
+			outputStream.close();
+			return downloadBytes;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return -1;
+		}finally{
+			IoUtils.close(inputStream);
+		}
 	}
 }

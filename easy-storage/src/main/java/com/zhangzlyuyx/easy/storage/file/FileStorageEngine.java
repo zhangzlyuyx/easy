@@ -106,7 +106,7 @@ public class FileStorageEngine extends StorageEngine {
 		try {
 			File file = new File(uploadFile);
 			if(file.exists()) {
-				return new Result<>(false, "文件已存在!");
+				return new Result<>(false, "文件" + uploadPath + " 已存在!");
 			} else if(file.isDirectory()) {
 				return new Result<>(false, "文件路径不符合要求!");
 			}
@@ -137,7 +137,7 @@ public class FileStorageEngine extends StorageEngine {
 		try {
 			File file = new File(downloadFile);
 			if(!file.exists()) {
-				return new Result<>(false, "文件不存在!");
+				return new Result<>(false, "文件" + downloadFile +" 不存在!");
 			}
 			
 			//写出文件

@@ -1,7 +1,11 @@
 package com.zhangzlyuyx.easy.core.util;
 
+import java.io.Closeable;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import cn.hutool.core.io.IORuntimeException;
 import cn.hutool.core.io.IoUtil;
@@ -13,6 +17,8 @@ import cn.hutool.core.io.IoUtil;
  */
 public class IoUtils {
 
+	private static final Logger log = LoggerFactory.getLogger(IoUtils.class);
+	
 	/** 默认缓存大小 */
 	public static final int DEFAULT_BUFFER_SIZE = 1024;
 	
@@ -34,5 +40,17 @@ public class IoUtils {
 	 */
 	public static long write(InputStream inputStream, OutputStream outputStream) throws IORuntimeException {
 		return IoUtil.copy(inputStream, outputStream);
+	}
+	
+	/**
+	 * 关闭对象
+	 * @param closeable
+	 */
+	public static void close(Closeable closeable) {
+		try {
+			closeable.close();
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
 	}
 }

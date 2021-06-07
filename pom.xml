@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.zhangzlyuyx</groupId>
 	<artifactId>easy-parent</artifactId>
-	<version>0.0.18</version>
+	<version>0.0.19</version>
 	<packaging>pom</packaging>
 	<name>easy-parent</name>
 	<description>easy-parent</description>
@@ -47,17 +47,19 @@
 		<spring.version>4.3.24.RELEASE</spring.version>
 		<aspectj.version>1.8.14</aspectj.version>
 		<freemarker.version>2.3.28</freemarker.version>
-		<mybatis.version>3.4.6</mybatis.version>
+		<mybatis.version>3.5.6</mybatis.version>
 		<mybatis-spring.version>1.3.3</mybatis-spring.version>
 		<tk.mybatis.mapper.version>3.5.3</tk.mybatis.mapper.version>
 		<tk.mybatis.mapper-core.version>1.1.5</tk.mybatis.mapper-core.version>
+		<shiro.version>1.7.0</shiro.version>
 		<jsoup.version>1.13.1</jsoup.version>
-		<dom4j.version>2.1.1</dom4j.version>
+		<dom4j.version>2.1.3</dom4j.version>
 		<jedis.version>2.9.3</jedis.version>
-		<httpcomponents.version>4.5.10</httpcomponents.version>
+		<httpcomponents.version>4.5.13</httpcomponents.version>
 		<netty.version>4.1.51.Final</netty.version>
 		<t-io.version>3.6.1.v20200512-RELEASE</t-io.version>
 		<swagger-annotations.version>1.5.20</swagger-annotations.version>
+		<captcha.version>1.6.2</captcha.version>
 	</properties>
 
 	<dependencyManagement>
@@ -101,6 +103,13 @@
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-webmvc</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			
+			<!-- spring-tx -->
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-tx</artifactId>
 				<version>${spring.version}</version>
 			</dependency>
 			
@@ -149,6 +158,27 @@
 				<groupId>tk.mybatis</groupId>
 				<artifactId>mapper-core</artifactId>
 				<version>${tk.mybatis.mapper-core.version}</version>
+			</dependency>
+			
+			<!-- shiro-core -->
+			<dependency>
+				<groupId>org.apache.shiro</groupId>
+				<artifactId>shiro-core</artifactId>
+				<version>${shiro.version}</version>
+			</dependency>
+			
+			<!-- shiro-spring -->
+			<dependency>
+				<groupId>org.apache.shiro</groupId>
+				<artifactId>shiro-spring</artifactId>
+				<version>${shiro.version}</version>
+			</dependency>
+			
+			<!-- shiro-cas -->
+			<dependency>
+				<groupId>org.apache.shiro</groupId>
+				<artifactId>shiro-cas</artifactId>
+				<version>${shiro.version}</version>
 			</dependency>
 
 			<!-- junit -->
@@ -217,6 +247,12 @@
 				<version>${swagger-annotations.version}</version>
 			</dependency>
 
+			<!-- captcha -->
+			<dependency>
+				<groupId>com.github.whvcse</groupId>
+				<artifactId>easy-captcha</artifactId>
+				<version>${captcha.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 

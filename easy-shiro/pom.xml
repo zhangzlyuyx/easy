@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.zhangzlyuyx</groupId>
 		<artifactId>easy-parent</artifactId>
-		<version>0.0.18</version>
+		<version>0.0.19</version>
 	</parent>
 	<artifactId>easy-shiro</artifactId>
 	<name>easy-shiro</name>
@@ -15,7 +15,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<shiro.version>1.3.2</shiro.version>
 	</properties>
 	<dependencies>
 		<!-- easy-core -->
@@ -34,19 +33,16 @@
 		<dependency>
 			<groupId>org.apache.shiro</groupId>
 			<artifactId>shiro-core</artifactId>
-			<version>${shiro.version}</version>
 		</dependency>
 		<!-- shiro-spring -->
 		<dependency>
 			<groupId>org.apache.shiro</groupId>
 			<artifactId>shiro-spring</artifactId>
-			<version>${shiro.version}</version>
 		</dependency>
 		<!-- shiro-cas -->
 		<dependency>
 			<groupId>org.apache.shiro</groupId>
 			<artifactId>shiro-cas</artifactId>
-			<version>${shiro.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>javax.servlet</groupId>
